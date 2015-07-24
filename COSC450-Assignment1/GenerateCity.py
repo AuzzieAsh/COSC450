@@ -9,7 +9,8 @@ import os
 import time
 
 # Change Based on Where to store GenerateCity.log
-LOG_FILE_PATH = '/Users/localash/Desktop/COSC450/COSC450-Assignment1'
+#LOG_FILE_PATH = '/Users/localash/Desktop/COSC450/COSC450-Assignment1'
+LOG_FILE_PATH = 'E:/Users/Ashley/Desktop/COSC450/COSC450-Assignment1'
 
 def log(to_write):
     log_file.write(to_write)
@@ -27,7 +28,7 @@ bpy.ops.object.select_pattern()
 bpy.ops.object.delete()
 
 # Number of tiles for x and y
-TILENUMBER = 50 #Should be an EVEN number
+TILENUMBER = 10 #Should be an EVEN number
 
 # Constants for Terrain
 EMPTY = -1
