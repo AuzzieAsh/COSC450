@@ -28,7 +28,7 @@ bpy.ops.object.select_pattern()
 bpy.ops.object.delete()
 
 # Number of tiles for x and y
-TILENUMBER = 10 #Should be an EVEN number
+TILENUMBER = 50 #Should be an EVEN number
 
 # Constants for Terrain
 EMPTY = -1
