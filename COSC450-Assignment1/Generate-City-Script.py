@@ -5,13 +5,29 @@
 import bpy
 import random
 import math
+import os
+import time
+
+# Change Based on Where to store GenerateCity.log
+LOG_FILE_PATH = '/Users/localash/Desktop/COSC450/COSC450-Assignment1'
+
+def log(to_write):
+    log_file.write(to_write)
+    return
+
+# Create/Open file for writing
+log_file = open(LOG_FILE_PATH + '/GenerateCity.log', 'w+')
+log(":: start\n\n")
+
+# Starting time of Script
+SCRIPT_START_TIME = time.time()
 
 # Clear The Screen
 bpy.ops.object.select_pattern()
 bpy.ops.object.delete()
 
 # Number of tiles for x and y
-TILENUMBER = 10 #Should be an EVEN number
+TILENUMBER = 50 #Should be an EVEN number
 
 # Constants for Terrain
 EMPTY = -1
@@ -49,12 +65,16 @@ def generate_terrain():
         for col in range (0, TILENUMBER-1):
             chance = random.uniform(0, 1)
             if chance <= 0.2:
+                log(" Terrain[%d][%d] = RIVER\n" % (row, col))
                 Terrain[row][col] = RIVER
             elif chance <= 0.8:
+                log(" Terrain[%d][%d] = BUILDING\n" % (row, col))
                 Terrain[row][col] = BUILDING
             elif chance <= 1.0:
+                log(" Terrain[%d][%d] = PARK\n" % (row, col))
                 Terrain[row][col] = PARK
             else: #Empty
+                log(" Terrain[%d][%d] = EMPTY\n" % (row, col))
                 Terrain[row][col] = EMPTY
     return
 
@@ -84,14 +104,16 @@ def render_terrain():
             y = (col - tileOffset) * 3
             
             if Terrain[row][col] == RIVER:
-                #print("R")
+                log(" Tile [%d,%d] = RIVER Created\n" % (row, col))
                 create_river(x, y)
             elif Terrain[row][col] == BUILDING:
-                #print("B")
+                log(" Tile [%d,%d] = BUILDING Created\n" % (row, col))
                 create_building(x, y)
+                create_road(x, y)
             elif Terrain[row][col] == PARK:
-                #print("P")
+                log(" Tile [%d,%d] = PARK Created\n" % (row, col))
                 create_park(x, y)
+                create_road(x, y)
             else:
                 create_empty()
                 
@@ -144,9 +166,23 @@ def create_building(x, y):
     
     return
 
+# Creates a road at an x,y tile
+def create_road(x, y):
+    road = bpy.ops.mesh.primitive_plane_add(location = (x, y, 0))
+    
+    bpy.context.selected_objects.clear()
+    bpy.context.selected_objects.append(road)
+    
+    bpy.ops.transform.resize(value = (1.5, 1.5, 1))
+    
+    bpy.ops.object.shade_smooth()
+    bpy.context.object.data.materials.append(roadMaterial)
+    
+    return
+    
 # Creates a park on an x,y tile
 def create_park(x, y):
-    park = bpy.ops.mesh.primitive_plane_add(location = (x, y, 0))
+    park = bpy.ops.mesh.primitive_plane_add(location = (x, y, 0.01))
     
     bpy.context.selected_objects.clear()
     bpy.context.selected_objects.append(park)
@@ -163,6 +199,27 @@ def create_empty():
     print("Empty Tile")
     return
 
+log("Filling Terrain array...\n")
 generate_terrain()
+log("Done.\n")
+
+log("Create from Terrain array...\n")
 render_terrain()
+log("Done.\n")
+
+log("Create Water Plane...\n")
 add_water_plane(1.5)
+log("Done.\n")
+
+# End Script Time
+SCRIPT_END_TIME = time.time()
+total = SCRIPT_END_TIME - SCRIPT_START_TIME
+days = total // 86400
+hours = total // 3600 % 24
+minutes = total // 60 % 60
+seconds = total % 60
+
+log("Total Time (H:M:S): %.0f:%.0f:%.1f\n" % (hours, minutes, seconds))
+
+log("\n:: end\n")
+log_file.close()
