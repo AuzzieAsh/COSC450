@@ -70,10 +70,10 @@ def fill_tile_array():
     for row in range (0, TILENUMBER-1):
         for col in range (0, TILENUMBER-1):
             chance = random.uniform(0, 1)
-            if chance <= 0.2:
+            if chance <= 0.8:
                 log(" Tiles[%d][%d] = RIVER\n" % (row, col))
                 Tiles[row][col] = RIVER
-            elif chance <= 0.8:
+            elif chance <= 0.9:
                 log(" Tiles[%d][%d] = BUILDING\n" % (row, col))
                 Tiles[row][col] = BUILDING
             elif chance <= 1.0:
@@ -98,7 +98,7 @@ def render_tile_array():
             
             if Tiles[row][col] == RIVER:
                 log(" Tile [%d,%d] RIVER Created\n" % (row, col))
-                create_river(x, y)
+                create_river(x, y, row, col)
             elif Tiles[row][col] == BUILDING:
                 log(" Tile [%d,%d] BUILDING Created\n" % (row, col))
                 create_building(x, y)
@@ -202,18 +202,32 @@ def add_water_plane(tileScale):
     return
 
 # Creates a river on an x,y tile
-def create_river(x, y):
-    hill_side = bpy.ops.mesh.primitive_plane_add(location = (x, y+0.8, -0.7))
-    bpy.context.selected_objects.clear()
-    bpy.context.selected_objects.append(hill_side)
-    bpy.ops.transform.resize(value = (1.5, 1, 1))
-    bpy.ops.transform.rotate(value = (math.radians(45)), axis =(1, 0, 0))
+def create_river(x, y, row, col):
+#    if (col + 1) >= TILENUMBER-1:
+#        col = col-1
+#    elif (col - 1) < 0:
+#        col = col + 1
+        
+    if col + 1 < TILENUMBER-1:
+        if Tiles[row][col+1] != RIVER:
+            hill_side = bpy.ops.mesh.primitive_plane_add(location = (x, y+0.8, -0.7))
+            bpy.context.selected_objects.clear()
+            bpy.context.selected_objects.append(hill_side)
+            bpy.ops.transform.resize(value = (1.5, 1, 1))
+            bpy.ops.transform.rotate(value = (math.radians(45)), axis =(1, 0, 0))
+    else:
+        hill_side = bpy.ops.mesh.primitive_plane_add(location = (x, y+0.8, -0.7))
+        bpy.context.selected_objects.clear()
+        bpy.context.selected_objects.append(hill_side)
+        bpy.ops.transform.resize(value = (1.5, 1, 1))
+        bpy.ops.transform.rotate(value = (math.radians(45)), axis =(1, 0, 0))
     
-    hill_side = bpy.ops.mesh.primitive_plane_add(location = (x, y-0.8, -0.7))
-    bpy.context.selected_objects.clear()
-    bpy.context.selected_objects.append(hill_side)
-    bpy.ops.transform.resize(value = (1.5, 1, 1))
-    bpy.ops.transform.rotate(value = (math.radians(-45)), axis =(1, 0, 0))
+    if col - 1 >= 0 and Tiles[row][col-1] != RIVER:
+        hill_side = bpy.ops.mesh.primitive_plane_add(location = (x, y-0.8, -0.7))
+        bpy.context.selected_objects.clear()
+        bpy.context.selected_objects.append(hill_side)
+        bpy.ops.transform.resize(value = (1.5, 1, 1))
+        bpy.ops.transform.rotate(value = (math.radians(-45)), axis =(1, 0, 0))
     
     hill_side = bpy.ops.mesh.primitive_plane_add(location = (x-0.8, y, -0.7))
     bpy.context.selected_objects.clear()
@@ -282,10 +296,10 @@ def create_empty():
     print("Empty Tile")
     return
 
-#fill_tile_array()
-#render_tile_array()
-#add_water_plane(1.5)
-render_terrain()
+fill_tile_array()
+render_tile_array()
+add_water_plane(1.5)
+#render_terrain()
 
 # End Script Time
 SCRIPT_END_TIME = time.time()
@@ -297,7 +311,7 @@ seconds = total % 60
 
 log("Total Time (H:M:S): %.0f:%.0f:%.1f\n" % (hours, minutes, seconds))
 
-log("\end logging\n")
+log("\nend logging\n")
 
 if DO_LOGGING:
     log_file.close()
