@@ -37,7 +37,7 @@ def log(to_write):
 bpy.ops.object.select_pattern()
 bpy.ops.object.delete()
 
-log(":: start logging\n\n")
+log("start logging\n\n")
 
 # Starting time of Script
 SCRIPT_START_TIME = time.time()
@@ -297,7 +297,7 @@ seconds = total % 60
 
 log("Total Time (H:M:S): %.0f:%.0f:%.1f\n" % (hours, minutes, seconds))
 
-log("\n:: end\n")
+log("\end logging\n")
 
 if DO_LOGGING:
     log_file.close()
