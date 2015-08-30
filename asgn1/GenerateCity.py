@@ -12,7 +12,7 @@ import time
 DO_LOGGING = True
 
 # Number of tiles for x and y
-TILENUMBER = 10 #Should be an EVEN number
+TILENUMBER = 4 #Should be an EVEN number
 
 # Constants for Terrain
 EMPTY = -1
@@ -31,6 +31,7 @@ if DO_LOGGING:
 def log(to_write):
     if DO_LOGGING:
         log_file.write(to_write)
+        log_file.flush()
     return
 
 # Clear The Screen
@@ -56,6 +57,20 @@ roadMaterial.diffuse_shader = 'LAMBERT'
 roadMaterial.diffuse_intensity = 0.1
 roadMaterial.emit = 0.5
 
+# White Material
+whiteMaterial = bpy.data.materials.new("whiteMaterial")
+whiteMaterial.diffuse_color = (0.9, 0.9, 0.9)
+whiteMaterial.diffuse_shader = 'LAMBERT'
+whiteMaterial.diffuse_intensity = 0.1
+whiteMaterial.emit = 0.5
+
+# Red Material
+redMaterial = bpy.data.materials.new("whiteMaterial")
+redMaterial.diffuse_color = (1, 0.1, 0)
+redMaterial.diffuse_shader = 'LAMBERT'
+redMaterial.diffuse_intensity = 0.1
+redMaterial.emit = 0.9
+
 # Water Material
 waterMaterial = bpy.data.materials.new("waterMaterial")
 waterMaterial.diffuse_color = (0, 0.1, 1)
@@ -70,13 +85,13 @@ def fill_tile_array():
     for row in range (0, TILENUMBER-1):
         for col in range (0, TILENUMBER-1):
             chance = random.uniform(0, 1)
-            if chance <= 0.8:
-                log(" Tiles[%d][%d] = RIVER\n" % (row, col))
-                Tiles[row][col] = RIVER
-            elif chance <= 0.9:
+            if chance <= 1.0:
                 log(" Tiles[%d][%d] = BUILDING\n" % (row, col))
                 Tiles[row][col] = BUILDING
-            elif chance <= 1.0:
+            elif chance <= 0.0:
+                log(" Tiles[%d][%d] = RIVER\n" % (row, col))
+                Tiles[row][col] = RIVER
+            elif chance <= 0.0:
                 log(" Tiles[%d][%d] = PARK\n" % (row, col))
                 Tiles[row][col] = PARK
             else: #Empty
@@ -253,6 +268,9 @@ def create_building(x, y):
     
     bpy.ops.transform.resize(value=(1, 1, base_z))
     
+    bpy.ops.object.shade_smooth()
+    bpy.context.object.data.materials.append(redMaterial)
+    
     top_z = random.randint(base_z+1, base_z*2)
     top = bpy.ops.mesh.primitive_cube_add(location = (x, y, top_z))
     
@@ -261,20 +279,63 @@ def create_building(x, y):
     
     bpy.ops.transform.resize(value=(0.8, 0.8, top_z))
     
+    bpy.ops.object.shade_smooth()
+    bpy.context.object.data.materials.append(redMaterial)
+    
     return
 
 # Creates a road at an x,y tile
 def create_road(x, y):
-    road = bpy.ops.mesh.primitive_plane_add(location = (x, y, 0))
+    path_length = 1.1
+    ground = bpy.ops.mesh.primitive_plane_add(location = (x, y, 0))
     
     bpy.context.selected_objects.clear()
-    bpy.context.selected_objects.append(road)
+    bpy.context.selected_objects.append(ground)
     
     bpy.ops.transform.resize(value = (1.5, 1.5, 1))
     
     bpy.ops.object.shade_smooth()
     bpy.context.object.data.materials.append(roadMaterial)
     
+    path = bpy.ops.mesh.primitive_plane_add(location = (x+1.1, y, 0.01))
+
+    bpy.context.selected_objects.clear()
+    bpy.context.selected_objects.append(path)
+    
+    bpy.ops.transform.resize(value = (0.1, path_length, 1))
+    
+    bpy.ops.object.shade_smooth()
+    bpy.context.object.data.materials.append(whiteMaterial)
+    
+    path = bpy.ops.mesh.primitive_plane_add(location = (x-1.1, y, 0.01))
+
+    bpy.context.selected_objects.clear()
+    bpy.context.selected_objects.append(path)
+    
+    bpy.ops.transform.resize(value = (0.1, path_length, 1))
+    
+    bpy.ops.object.shade_smooth()
+    bpy.context.object.data.materials.append(whiteMaterial)
+
+    path = bpy.ops.mesh.primitive_plane_add(location = (x, y+1.1, 0.01))
+
+    bpy.context.selected_objects.clear()
+    bpy.context.selected_objects.append(path)
+    
+    bpy.ops.transform.resize(value = (path_length, 0.1, 1))
+    
+    bpy.ops.object.shade_smooth()
+    bpy.context.object.data.materials.append(whiteMaterial)
+    
+    path = bpy.ops.mesh.primitive_plane_add(location = (x, y-1.1, 0.01))
+
+    bpy.context.selected_objects.clear()
+    bpy.context.selected_objects.append(path)
+    
+    bpy.ops.transform.resize(value = (path_length, 0.1, 1))
+    
+    bpy.ops.object.shade_smooth()
+    bpy.context.object.data.materials.append(whiteMaterial)
     return
     
 # Creates a park on an x,y tile
