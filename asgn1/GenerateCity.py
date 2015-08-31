@@ -7,7 +7,6 @@ import random
 import math
 import os
 import time
-from collections import namedtuple
 
 # Change if logging should be on or off
 DO_LOGGING = True
@@ -23,6 +22,8 @@ RIVER = 2
 
 # Stores what is in every tile
 Tiles = [[0 for rows in range(TILENUMBER)] for cols in range(TILENUMBER)]
+#[top, bot, left, right]
+AlleyWay = [[0 for rows in range(TILENUMBER)] for cols in range(TILENUMBER)]
 
 # Open file for logging
 if DO_LOGGING:
@@ -91,6 +92,15 @@ def fill_tile_array():
             if chance <= 1.0:
                 log("  [%d,%d] = BUILDING\n" % (row, col))
                 Tiles[row][col] = BUILDING
+                alley_chance = []
+                for i in range(4):
+                    chance = random.uniform(0, 1)
+                    if (chance <= 0.5):
+                        alley_chance.append(0)
+                    else:
+                        alley_chance.append(1)
+                        
+                AlleyWay[row][col] = alley_chance
             elif chance <= 0.0:
                 log("  [%d,%d] = PARK\n" % (row, col))
                 Tiles[row][col] = PARK
@@ -223,6 +233,33 @@ def create_building(x, y, row, col):
     elif col == len(Tiles)-1:
         move_y = -0.2
         
+    if row != 0 and col != 0 and row != len(Tiles)-1 and col != len(Tiles)-1:
+        if AlleyWay[row][col][0] != AlleyWay[row][col][1]:
+            if AlleyWay[row][col][0] == 1:
+                move_y = 0.2
+                scale_b_y += 0.1
+                scale_t_y += 0.1
+            elif AlleyWay[row][col][1] == 1:
+                move_y = -0.2
+                scale_b_y += 0.1
+                scale_t_y += 0.1
+        elif AlleyWay[row][col][0] == 1:
+            scale_b_y += 0.2
+            scale_t_y += 0.2
+        
+        if AlleyWay[row][col][2] != AlleyWay[row][col][3]:
+            if AlleyWay[row][col][2] == 1:
+                move_x = -0.2
+                scale_b_x += 0.1
+                scale_t_x += 0.1
+            elif AlleyWay[row][col][3] == 1:
+                move_x = 0.2 
+                scale_b_x += 0.1
+                scale_t_x += 0.1
+        elif AlleyWay[row][col][2] == 1:
+            scale_b_x += 0.2
+            scale_t_x += 0.2
+            
     # Create Building
     base_z = random.randint(2, 4)
     base = bpy.ops.mesh.primitive_cube_add(location = (x+move_x, y+move_y, base_z))
@@ -274,6 +311,27 @@ def create_building(x, y, row, col):
         move_y_2 = -0.4
         slide_y = -0.2
         
+    if row != 0 and col != 0 and row != len(Tiles)-1 and col != len(Tiles)-1:
+        if AlleyWay[row][col][0] != AlleyWay[row][col][1]:
+            if AlleyWay[row][col][0] == 1:
+                path_length_y += 0.1
+            elif AlleyWay[row][col][1] == 1:
+                path_length_y += 0.1
+        elif AlleyWay[row][col][0] == 1:
+            path_length_y += 0.2
+            move_y_1 -= 0.2
+            move_y_2 += 0.2
+        
+        if AlleyWay[row][col][2] != AlleyWay[row][col][3]:
+            if AlleyWay[row][col][2] == 1:
+                path_length_x += 0.1
+            elif AlleyWay[row][col][3] == 1:
+                path_length_x += 0.1
+        elif AlleyWay[row][col][2] == 1:
+            path_length_x += 0.2
+            move_x_1 -= 0.2
+            move_x_2 += 0.2
+            
     ground = bpy.ops.mesh.primitive_plane_add(location = (x, y, 0))
     
     bpy.context.selected_objects.clear()
