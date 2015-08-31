@@ -131,3 +131,73 @@ z = -0.7
 #bpy.context.selected_objects.clear()
 #bpy.context.selected_objects.append(top)
 #bpy.ops.transform.resize(value=(0.8, 0.8, top_n))
+
+
+def render_terrain():
+    log("Create Terrain...\n")
+    
+    verts = []
+    faces = []
+    edges = []
+    
+    for row in range (0, TILENUMBER-1):
+        for col in range (0, TILENUMBER-1):
+            
+            tileOffset = (TILENUMBER-1)/2
+            x = (row - tileOffset) * 3
+            y = (col - tileOffset) * 3
+            
+            height = random.randint(0, 5)
+            verts.append((x, y, height))
+            verts.append((x+1, y, height))
+            verts.append((x+1, y+1, height))
+            verts.append((x, y+1, height))
+            #faces.append((row, col, row+1, col+1))
+            new_row = row*(TILENUMBER-1)+col
+            new_col = row*(TILENUMBER-1)+col
+            edges.append((new_row, new_row+1))
+            edges.append((new_row+1, new_col+1))
+            edges.append((new_col+1, new_col))
+            edges.append((new_col, new_row))
+    
+    plane = createMesh('Terrain', (0, 0, 0), verts, edges, faces)
+    
+    log("Done.\n")            
+    return
+
+
+# http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Cookbook/Code_snippets/Meshes
+def createMesh(name, origin, verts, edges, faces):
+    # Create mesh and object
+    me = bpy.data.meshes.new(name+'Mesh')
+    ob = bpy.data.objects.new(name, me)
+    ob.location = origin
+    ob.show_name = False
+    # Link object to scene
+    bpy.context.scene.objects.link(ob)
+    
+    # Create mesh from given verts, edges, faces. Either edges or
+    # faces should be [], or you ask for problems
+    me.from_pydata(verts, edges, faces)
+    
+    # Update mesh with new data
+    me.update(calc_edges=True)
+    return ob
+
+## http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Cookbook/Code_snippets/Meshes
+#def run(origin):
+#    (x,y,z) = (0.707107, 0.258819, 0.965926)
+#    x = x + 0.7
+#    tz = -0.7
+#    verts1 = ((x,x,tz), (x,-x,tz), (-x,-x,tz), (-x,x,tz), (0,0,0.7))
+#    faces1 = ((1,0,4), (4,2,1), (4,3,2), (4,0,3), (0,1,2,3))
+#    ob1 = createMesh('Solid', origin, verts1, [], faces1)
+#    #verts2 = ((x,x,0), (y,-z,0), (-z,y,0))
+#    #“edges2 = ((1,0), (1,2), (2,0))
+#    #ob2 = createMesh('Edgy', origin, verts2, edges2, [])
+#    
+#    # Move second object out of the way
+#    ob1.select = False
+#    #ob2.select = True
+#    #bpy.ops.transform.translate(value=(0,2,0))
+#    return

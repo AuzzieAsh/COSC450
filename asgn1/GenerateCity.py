@@ -1,4 +1,4 @@
-# File: Generate-City-Script.py
+# File: GenerateCity.py
 # Author: Ashley Manson
 # Generates a random city layout in Blender
 
@@ -7,21 +7,22 @@ import random
 import math
 import os
 import time
+from collections import namedtuple
 
-# Change if to logging should be on or off
+# Change if logging should be on or off
 DO_LOGGING = True
 
-# Number of tiles for x and y
-TILENUMBER = 4 #Should be an EVEN number
+# Number of tiles for x (rows) and y (cols)
+TILENUMBER = 4
 
 # Constants for Terrain
 EMPTY = -1
-RIVER = 0
-BUILDING = 1
-PARK = 2
+BUILDING = 0
+PARK = 1
+RIVER = 2
 
 # Stores what is in every tile
-Tiles = [[0 for x in range(TILENUMBER-1)] for y in range(TILENUMBER-1)]
+Tiles = [[0 for rows in range(TILENUMBER)] for cols in range(TILENUMBER)]
 
 # Open file for logging
 if DO_LOGGING:
@@ -80,126 +81,61 @@ waterMaterial.emit = 0.5
 
 # Fills the Terrain array
 def fill_tile_array():
-    log("Filling Tiles array...\n")
-    
-    for row in range (0, TILENUMBER-1):
-        for col in range (0, TILENUMBER-1):
+    log("fill_tile_array called...\n")
+  
+    for row in range(len(Tiles)):
+        for col in range(len(Tiles[0])):
+            
             chance = random.uniform(0, 1)
+            
             if chance <= 1.0:
-                log(" Tiles[%d][%d] = BUILDING\n" % (row, col))
+                log("  [%d,%d] = BUILDING\n" % (row, col))
                 Tiles[row][col] = BUILDING
             elif chance <= 0.0:
-                log(" Tiles[%d][%d] = RIVER\n" % (row, col))
-                Tiles[row][col] = RIVER
-            elif chance <= 0.0:
-                log(" Tiles[%d][%d] = PARK\n" % (row, col))
+                log("  [%d,%d] = PARK\n" % (row, col))
                 Tiles[row][col] = PARK
+            elif chance <= 0.0:
+                log("  [%d,%d] = RIVER\n" % (row, col))
+                Tiles[row][col] = RIVER
             else: #Empty
-                log(" Tiles[%d][%d] = EMPTY\n" % (row, col))
+                log("  [%d,%d] = EMPTY\n" % (row, col))
                 Tiles[row][col] = EMPTY
+                
     log("Done.\n")
+    
     return
 
 # Renders what is in the Terrain array
 def render_tile_array():
-    log("Create from Tiles array...\n")
+    log("render_tile_array called...\n")
     
-    for row in range (0, TILENUMBER-1):
-        for col in range (0, TILENUMBER-1):
+    for row in range (len(Tiles)):
+        for col in range (len(Tiles[0])):
             
-            tileOffset = (TILENUMBER-2)/2
+            tileOffset = (TILENUMBER-1)/2
             x = (row - tileOffset) * 3
             y = (col - tileOffset) * 3
             
-            if Tiles[row][col] == RIVER:
-                log(" Tile [%d,%d] RIVER Created\n" % (row, col))
-                create_river(x, y, row, col)
-            elif Tiles[row][col] == BUILDING:
-                log(" Tile [%d,%d] BUILDING Created\n" % (row, col))
-                create_building(x, y)
-                create_road(x, y)
+            if Tiles[row][col] == BUILDING:
+                create_building(x, y, row, col)
+                log("  [%d,%d] BUILDING Created\n" % (row, col))
             elif Tiles[row][col] == PARK:
-                log(" Tile [%d,%d] PARK Created\n" % (row, col))
                 create_park(x, y)
-                create_road(x, y)
-            else:
+                log("  [%d,%d] PARK Created\n" % (row, col))
+            elif Tiles[row][col] == RIVER:      
+                create_river(x, y, row, col)
+                log("  [%d,%d] RIVER Created\n" % (row, col))
+            else: #Empty
                 create_empty()
+                log("  [%d,%d] EMPTY Created\n" % (row, col))
                 
-    log("Done.\n")            
+    log("Done.\n")
+    
     return
-
-def render_terrain():
-    log("Create Terrain...\n")
-    
-    verts = []
-    faces = []
-    edges = []
-    
-    for row in range (0, TILENUMBER-1):
-        for col in range (0, TILENUMBER-1):
-            
-            tileOffset = (TILENUMBER-2)/2
-            x = (row - tileOffset) * 3
-            y = (col - tileOffset) * 3
-            
-            height = random.randint(0, 5)
-            verts.append((x, y, height))
-            verts.append((x+1, y, height))
-            verts.append((x+1, y+1, height))
-            verts.append((x, y+1, height))
-            #faces.append((row, col, row+1, col+1))
-            new_row = row*(TILENUMBER-1)+col
-            new_col = row*(TILENUMBER-1)+col
-            edges.append((new_row, new_row+1))
-            edges.append((new_row+1, new_col+1))
-            edges.append((new_col+1, new_col))
-            edges.append((new_col, new_row))
-    
-    plane = createMesh('Terrain', (0, 0, 0), verts, edges, faces)
-    
-    log("Done.\n")            
-    return
-
-
-# http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Cookbook/Code_snippets/Meshes
-def createMesh(name, origin, verts, edges, faces):
-    # Create mesh and object
-    me = bpy.data.meshes.new(name+'Mesh')
-    ob = bpy.data.objects.new(name, me)
-    ob.location = origin
-    ob.show_name = False
-    # Link object to scene
-    bpy.context.scene.objects.link(ob)
-    
-    # Create mesh from given verts, edges, faces. Either edges or
-    # faces should be [], or you ask for problems
-    me.from_pydata(verts, edges, faces)
-    
-    # Update mesh with new data
-    me.update(calc_edges=True)
-    return ob
-
-## http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Cookbook/Code_snippets/Meshes
-#def run(origin):
-#    (x,y,z) = (0.707107, 0.258819, 0.965926)
-#    x = x + 0.7
-#    tz = -0.7
-#    verts1 = ((x,x,tz), (x,-x,tz), (-x,-x,tz), (-x,x,tz), (0,0,0.7))
-#    faces1 = ((1,0,4), (4,2,1), (4,3,2), (4,0,3), (0,1,2,3))
-#    ob1 = createMesh('Solid', origin, verts1, [], faces1)
-#    #verts2 = ((x,x,0), (y,-z,0), (-z,y,0))
-#    #“edges2 = ((1,0), (1,2), (2,0))
-#    #ob2 = createMesh('Edgy', origin, verts2, edges2, [])
-#    
-#    # Move second object out of the way
-#    ob1.select = False
-#    #ob2.select = True
-#    #bpy.ops.transform.translate(value=(0,2,0))
-#    return
 
 # Add a plane as the sea level
 def add_water_plane(tileScale):
-    log("Create Water Plane...\n")
+    log("add_water_plane called...\n")
     
     tileRange = tileScale * TILENUMBER
     
@@ -259,34 +195,85 @@ def create_river(x, y, row, col):
     return
 
 # Creates a building on an x,y tile
-def create_building(x, y):
+def create_building(x, y, row, col):
+    
+    scale_b_x = 1
+    scale_t_x = 0.8
+    move_x = 0
+    
+    scale_b_y = 1
+    scale_t_y = 0.8
+    move_y = 0
+    
+    if row == 0 or row == len(Tiles)-1:
+        scale_b_x = 0.8
+        scale_t_x = 0.6
+        
+    if row == 0:
+        move_x = 0.2
+    elif row == len(Tiles)-1:
+        move_x = -0.2
+        
+    if col == 0 or col == len(Tiles)-1:
+        scale_b_y = 0.8
+        scale_t_y = 0.6
+        
+    if col == 0:
+        move_y = 0.2
+    elif col == len(Tiles)-1:
+        move_y = -0.2
+        
+    # Create Building
     base_z = random.randint(2, 4)
-    base = bpy.ops.mesh.primitive_cube_add(location = (x, y, base_z))
+    base = bpy.ops.mesh.primitive_cube_add(location = (x+move_x, y+move_y, base_z))
     
     bpy.context.selected_objects.clear()
     bpy.context.selected_objects.append(base)
     
-    bpy.ops.transform.resize(value=(1, 1, base_z))
+    bpy.ops.transform.resize(value=(scale_b_x, scale_b_y, base_z))
     
     bpy.ops.object.shade_smooth()
     bpy.context.object.data.materials.append(redMaterial)
     
     top_z = random.randint(base_z+1, base_z*2)
-    top = bpy.ops.mesh.primitive_cube_add(location = (x, y, top_z))
+    top = bpy.ops.mesh.primitive_cube_add(location = (x+move_x, y+move_y, top_z))
     
     bpy.context.selected_objects.clear()
     bpy.context.selected_objects.append(top)
     
-    bpy.ops.transform.resize(value=(0.8, 0.8, top_z))
+    bpy.ops.transform.resize(value=(scale_t_x, scale_t_y, top_z))
     
     bpy.ops.object.shade_smooth()
     bpy.context.object.data.materials.append(redMaterial)
     
-    return
-
-# Creates a road at an x,y tile
-def create_road(x, y):
-    path_length = 1.1
+    # Create surrounding path and road
+    path_length_x = 1.2
+    path_length_y = 1.2
+    move_x_1 = 0
+    move_x_2 = 0
+    move_y_1 = 0
+    move_y_2 = 0
+    slide_x = 0
+    slide_y = 0
+    
+    if row == 0 or row == len(Tiles)-1:
+        path_length_x = 1
+    if row == 0:
+        move_x_1 = 0.4
+        slide_x = 0.2
+    elif row == len(Tiles)-1:
+        move_x_2 = -0.4
+        slide_x = -0.2
+        
+    if col == 0 or col == len(Tiles)-1:
+        path_length_y = 1
+    if col == 0:
+        move_y_1 = 0.4
+        slide_y = 0.2
+    elif col == len(Tiles)-1:
+        move_y_2 = -0.4
+        slide_y = -0.2
+        
     ground = bpy.ops.mesh.primitive_plane_add(location = (x, y, 0))
     
     bpy.context.selected_objects.clear()
@@ -297,45 +284,51 @@ def create_road(x, y):
     bpy.ops.object.shade_smooth()
     bpy.context.object.data.materials.append(roadMaterial)
     
-    path = bpy.ops.mesh.primitive_plane_add(location = (x+1.1, y, 0.01))
+    path = bpy.ops.mesh.primitive_plane_add(location = (x+1.1+move_x_2, y+slide_y, 0.01))
 
     bpy.context.selected_objects.clear()
     bpy.context.selected_objects.append(path)
     
-    bpy.ops.transform.resize(value = (0.1, path_length, 1))
+    bpy.ops.transform.resize(value = (0.1, path_length_y, 1))
     
     bpy.ops.object.shade_smooth()
     bpy.context.object.data.materials.append(whiteMaterial)
     
-    path = bpy.ops.mesh.primitive_plane_add(location = (x-1.1, y, 0.01))
+    path = bpy.ops.mesh.primitive_plane_add(location = (x-1.1+move_x_1, y+slide_y, 0.01))
 
     bpy.context.selected_objects.clear()
     bpy.context.selected_objects.append(path)
     
-    bpy.ops.transform.resize(value = (0.1, path_length, 1))
+    bpy.ops.transform.resize(value = (0.1, path_length_y, 1))
     
     bpy.ops.object.shade_smooth()
     bpy.context.object.data.materials.append(whiteMaterial)
 
-    path = bpy.ops.mesh.primitive_plane_add(location = (x, y+1.1, 0.01))
-
-    bpy.context.selected_objects.clear()
-    bpy.context.selected_objects.append(path)
-    
-    bpy.ops.transform.resize(value = (path_length, 0.1, 1))
-    
-    bpy.ops.object.shade_smooth()
-    bpy.context.object.data.materials.append(whiteMaterial)
-    
-    path = bpy.ops.mesh.primitive_plane_add(location = (x, y-1.1, 0.01))
+    path = bpy.ops.mesh.primitive_plane_add(location = (x+slide_x, y+1.1+move_y_2, 0.01))
 
     bpy.context.selected_objects.clear()
     bpy.context.selected_objects.append(path)
     
-    bpy.ops.transform.resize(value = (path_length, 0.1, 1))
+    bpy.ops.transform.resize(value = (path_length_x, 0.1, 1))
     
     bpy.ops.object.shade_smooth()
     bpy.context.object.data.materials.append(whiteMaterial)
+    
+    path = bpy.ops.mesh.primitive_plane_add(location = (x+slide_x, y-1.1+move_y_1, 0.01))
+
+    bpy.context.selected_objects.clear()
+    bpy.context.selected_objects.append(path)
+    
+    bpy.ops.transform.resize(value = (path_length_x, 0.1, 1))
+    
+    bpy.ops.object.shade_smooth()
+    bpy.context.object.data.materials.append(whiteMaterial)
+    
+    return
+
+# Creates a road at an x,y tile
+def create_road(x, y):
+
     return
     
 # Creates a park on an x,y tile
@@ -359,9 +352,10 @@ def create_empty():
 
 fill_tile_array()
 render_tile_array()
-add_water_plane(1.5)
-#render_terrain()
+add_water_plane(2)
 
+bpy.context.selected_objects.clear()
+    
 # End Script Time
 SCRIPT_END_TIME = time.time()
 total = SCRIPT_END_TIME - SCRIPT_START_TIME
@@ -369,6 +363,9 @@ days = total // 86400
 hours = total // 3600 % 24
 minutes = total // 60 % 60
 seconds = total % 60
+
+log("Tiles Rows: %d\n" %len(Tiles))
+log("Tiles Cols: %d\n" %len(Tiles[0]))
 
 log("Total Time (H:M:S): %.0f:%.0f:%.1f\n" % (hours, minutes, seconds))
 
