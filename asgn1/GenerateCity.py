@@ -8,11 +8,9 @@ import math
 import os
 import time
 
-# Change if logging should be on or off
-DO_LOGGING = True
-
-# Number of tiles for x (rows) and y (cols)
-TILENUMBER = 4
+DO_LOGGING = True # Change if logging should be on or off
+TILENUMBER = 4 # Number of tiles for x (rows) and y (cols)
+SCRIPT_START_TIME = time.time() # Starting time of Script
 
 # Constants for Terrain
 EMPTY = -1
@@ -21,7 +19,7 @@ PARK = 1
 RIVER = 2
 
 # Stores what is in every tile
-Tiles = [[0 for rows in range(TILENUMBER)] for cols in range(TILENUMBER)]
+TILES = [[0 for rows in range(TILENUMBER)] for cols in range(TILENUMBER)]
 #[top, bot, left, right]
 AlleyWay = [[0 for rows in range(TILENUMBER)] for cols in range(TILENUMBER)]
 
@@ -32,7 +30,14 @@ if DO_LOGGING:
 
 def log(to_write):
     if DO_LOGGING:
+        total_time = time.time() - SCRIPT_START_TIME
+        days = total_time // 86400
+        hours = total_time // 3600 % 24
+        minutes = total_time // 60 % 60
+        seconds = total_time % 60
+        log_file.write("[%.0f:%.0f:%.1f] " % (hours, minutes, seconds))
         log_file.write(to_write)
+        log_file.write("\n")
         log_file.flush()
     return
 
@@ -40,10 +45,7 @@ def log(to_write):
 bpy.ops.object.select_pattern()
 bpy.ops.object.delete()
 
-log("start logging\n\n")
-
-# Starting time of Script
-SCRIPT_START_TIME = time.time()
+log("start logging")
 
 # Park Material
 parkMaterial = bpy.data.materials.new("parkMaterial")
@@ -82,16 +84,16 @@ waterMaterial.emit = 0.5
 
 # Fills the Terrain array
 def fill_tile_array():
-    log("fill_tile_array called...\n")
+    log("fill_tile_array called...")
   
-    for row in range(len(Tiles)):
-        for col in range(len(Tiles[0])):
+    for row in range(len(TILES)):
+        for col in range(len(TILES[0])):
             
             chance = random.uniform(0, 1)
             
             if chance <= 1.0:
-                log("  [%d,%d] = BUILDING\n" % (row, col))
-                Tiles[row][col] = BUILDING
+                log("[%d,%d] = BUILDING" % (row, col))
+                TILES[row][col] = BUILDING
                 alley_chance = []
                 for i in range(4):
                     chance = random.uniform(0, 1)
@@ -102,50 +104,50 @@ def fill_tile_array():
                         
                 AlleyWay[row][col] = alley_chance
             elif chance <= 0.0:
-                log("  [%d,%d] = PARK\n" % (row, col))
-                Tiles[row][col] = PARK
+                log("[%d,%d] = PARK" % (row, col))
+                TILES[row][col] = PARK
             elif chance <= 0.0:
-                log("  [%d,%d] = RIVER\n" % (row, col))
-                Tiles[row][col] = RIVER
+                log("[%d,%d] = RIVER" % (row, col))
+                TILES[row][col] = RIVER
             else: #Empty
-                log("  [%d,%d] = EMPTY\n" % (row, col))
-                Tiles[row][col] = EMPTY
+                log("[%d,%d] = EMPTY" % (row, col))
+                TILES[row][col] = EMPTY
                 
-    log("Done.\n")
+    log("Done.")
     
     return
 
 # Renders what is in the Terrain array
 def render_tile_array():
-    log("render_tile_array called...\n")
+    log("render_tile_array called...")
     
-    for row in range (len(Tiles)):
-        for col in range (len(Tiles[0])):
+    for row in range (len(TILES)):
+        for col in range (len(TILES[0])):
             
             tileOffset = (TILENUMBER-1)/2
             x = (row - tileOffset) * 3
             y = (col - tileOffset) * 3
             
-            if Tiles[row][col] == BUILDING:
+            if TILES[row][col] == BUILDING:
                 create_building(x, y, row, col)
-                log("  [%d,%d] BUILDING Created\n" % (row, col))
-            elif Tiles[row][col] == PARK:
+                log("[%d,%d] BUILDING Created" % (row, col))
+            elif TILES[row][col] == PARK:
                 create_park(x, y)
-                log("  [%d,%d] PARK Created\n" % (row, col))
-            elif Tiles[row][col] == RIVER:      
+                log("[%d,%d] PARK Created" % (row, col))
+            elif TILES[row][col] == RIVER:      
                 create_river(x, y, row, col)
-                log("  [%d,%d] RIVER Created\n" % (row, col))
+                log("[%d,%d] RIVER Created" % (row, col))
             else: #Empty
                 create_empty()
-                log("  [%d,%d] EMPTY Created\n" % (row, col))
+                log("[%d,%d] EMPTY Created" % (row, col))
                 
-    log("Done.\n")
+    log("Done.")
     
     return
 
 # Add a plane as the sea level
 def add_water_plane(tileScale):
-    log("add_water_plane called...\n")
+    log("add_water_plane called...")
     
     tileRange = tileScale * TILENUMBER
     
@@ -159,7 +161,7 @@ def add_water_plane(tileScale):
     bpy.ops.object.shade_smooth()
     bpy.context.object.data.materials.append(waterMaterial)
     
-    log("Done.\n")
+    log("Done.")
     return
 
 # Creates a river on an x,y tile
@@ -170,7 +172,7 @@ def create_river(x, y, row, col):
 #        col = col + 1
         
     if col + 1 < TILENUMBER-1:
-        if Tiles[row][col+1] != RIVER:
+        if TILES[row][col+1] != RIVER:
             hill_side = bpy.ops.mesh.primitive_plane_add(location = (x, y+0.8, -0.7))
             bpy.context.selected_objects.clear()
             bpy.context.selected_objects.append(hill_side)
@@ -215,25 +217,25 @@ def create_building(x, y, row, col):
     scale_t_y = 0.8
     move_y = 0
     
-    if row == 0 or row == len(Tiles)-1:
+    if row == 0 or row == len(TILES)-1:
         scale_b_x = 0.8
         scale_t_x = 0.6
         
     if row == 0:
         move_x = 0.2
-    elif row == len(Tiles)-1:
+    elif row == len(TILES)-1:
         move_x = -0.2
         
-    if col == 0 or col == len(Tiles)-1:
+    if col == 0 or col == len(TILES)-1:
         scale_b_y = 0.8
         scale_t_y = 0.6
         
     if col == 0:
         move_y = 0.2
-    elif col == len(Tiles)-1:
+    elif col == len(TILES)-1:
         move_y = -0.2
         
-    if row != 0 and col != 0 and row != len(Tiles)-1 and col != len(Tiles)-1:
+    if row != 0 and col != 0 and row != len(TILES)-1 and col != len(TILES)-1:
         if AlleyWay[row][col][0] != AlleyWay[row][col][1]:
             if AlleyWay[row][col][0] == 1:
                 move_y = 0.2
@@ -293,25 +295,25 @@ def create_building(x, y, row, col):
     slide_x = 0
     slide_y = 0
     
-    if row == 0 or row == len(Tiles)-1:
+    if row == 0 or row == len(TILES)-1:
         path_length_x = 1
     if row == 0:
         move_x_1 = 0.4
         slide_x = 0.2
-    elif row == len(Tiles)-1:
+    elif row == len(TILES)-1:
         move_x_2 = -0.4
         slide_x = -0.2
         
-    if col == 0 or col == len(Tiles)-1:
+    if col == 0 or col == len(TILES)-1:
         path_length_y = 1
     if col == 0:
         move_y_1 = 0.4
         slide_y = 0.2
-    elif col == len(Tiles)-1:
+    elif col == len(TILES)-1:
         move_y_2 = -0.4
         slide_y = -0.2
         
-    if row != 0 and col != 0 and row != len(Tiles)-1 and col != len(Tiles)-1:
+    if row != 0 and col != 0 and row != len(TILES)-1 and col != len(TILES)-1:
         if AlleyWay[row][col][0] != AlleyWay[row][col][1]:
             if AlleyWay[row][col][0] == 1:
                 path_length_y += 0.1
@@ -413,21 +415,11 @@ render_tile_array()
 add_water_plane(2)
 
 bpy.context.selected_objects.clear()
-    
-# End Script Time
-SCRIPT_END_TIME = time.time()
-total = SCRIPT_END_TIME - SCRIPT_START_TIME
-days = total // 86400
-hours = total // 3600 % 24
-minutes = total // 60 % 60
-seconds = total % 60
 
-log("Tiles Rows: %d\n" %len(Tiles))
-log("Tiles Cols: %d\n" %len(Tiles[0]))
+log("Tiles Rows: %d" %len(TILES))
+log("Tiles Cols: %d" %len(TILES[0]))
 
-log("Total Time (H:M:S): %.0f:%.0f:%.1f\n" % (hours, minutes, seconds))
-
-log("\nend logging\n")
+log("end logging")
 
 if DO_LOGGING:
     log_file.close()
