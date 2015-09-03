@@ -9,7 +9,7 @@ import os
 import time
 
 DO_LOGGING = True # Change if logging should be on or off
-TILENUMBER = 4 # Number of tiles for x (rows) and y (cols)
+TILENUMBER = 10 # Number of tiles for x (rows) and y (cols)
 SCRIPT_START_TIME = time.time() # Starting time of Script
 
 # Constants for Terrain
@@ -98,9 +98,9 @@ def fill_tile_array():
                 for i in range(4):
                     chance = random.uniform(0, 1)
                     if (chance <= 0.5):
-                        alley_chance.append(0)
-                    else:
                         alley_chance.append(1)
+                    else:
+                        alley_chance.append(0)
                         
                 AlleyWay[row][col] = alley_chance
             elif chance <= 0.0:
@@ -238,11 +238,11 @@ def create_building(x, y, row, col):
     if row != 0 and col != 0 and row != len(TILES)-1 and col != len(TILES)-1:
         if AlleyWay[row][col][0] != AlleyWay[row][col][1]:
             if AlleyWay[row][col][0] == 1:
-                move_y = 0.2
+                move_y = 0.1
                 scale_b_y += 0.1
                 scale_t_y += 0.1
             elif AlleyWay[row][col][1] == 1:
-                move_y = -0.2
+                move_y = -0.1
                 scale_b_y += 0.1
                 scale_t_y += 0.1
         elif AlleyWay[row][col][0] == 1:
@@ -251,11 +251,11 @@ def create_building(x, y, row, col):
         
         if AlleyWay[row][col][2] != AlleyWay[row][col][3]:
             if AlleyWay[row][col][2] == 1:
-                move_x = -0.2
+                move_x = -0.1
                 scale_b_x += 0.1
                 scale_t_x += 0.1
             elif AlleyWay[row][col][3] == 1:
-                move_x = 0.2 
+                move_x = 0.1
                 scale_b_x += 0.1
                 scale_t_x += 0.1
         elif AlleyWay[row][col][2] == 1:
@@ -287,12 +287,13 @@ def create_building(x, y, row, col):
     
     # Create surrounding path and road
     path_length_x = 1.2
-    path_length_y = 1.2
     move_x_1 = 0
     move_x_2 = 0
+    slide_x = 0
+    
+    path_length_y = 1.2
     move_y_1 = 0
     move_y_2 = 0
-    slide_x = 0
     slide_y = 0
     
     if row == 0 or row == len(TILES)-1:
@@ -317,8 +318,14 @@ def create_building(x, y, row, col):
         if AlleyWay[row][col][0] != AlleyWay[row][col][1]:
             if AlleyWay[row][col][0] == 1:
                 path_length_y += 0.1
+                #move_y_1 += 0.1
+                move_y_2 += 0.2
+                slide_y += 0.1
             elif AlleyWay[row][col][1] == 1:
                 path_length_y += 0.1
+                move_y_1 -= 0.2
+                #move_y_2 -= 0.1
+                slide_y -= 0.1
         elif AlleyWay[row][col][0] == 1:
             path_length_y += 0.2
             move_y_1 -= 0.2
@@ -327,8 +334,14 @@ def create_building(x, y, row, col):
         if AlleyWay[row][col][2] != AlleyWay[row][col][3]:
             if AlleyWay[row][col][2] == 1:
                 path_length_x += 0.1
+                move_x_1 -= 0.2
+                #move_x_2 -= 0.1
+                slide_x -= 0.1
             elif AlleyWay[row][col][3] == 1:
                 path_length_x += 0.1
+                #move_x_1 += 0.1
+                move_x_2 += 0.2
+                slide_x += 0.1
         elif AlleyWay[row][col][2] == 1:
             path_length_x += 0.2
             move_x_1 -= 0.2
