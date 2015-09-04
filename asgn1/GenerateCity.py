@@ -31,12 +31,26 @@ greenMaterial.diffuse_shader = 'LAMBERT'
 greenMaterial.diffuse_intensity = 0.1
 greenMaterial.emit = 0.5
 
+# Brown Material
+brownMaterial = bpy.data.materials.new("brownMaterial")
+brownMaterial.diffuse_color = (0.8, 0.2 ,0.1)
+brownMaterial.diffuse_shader = 'LAMBERT'
+brownMaterial.diffuse_intensity = 0.1
+brownMaterial.emit = 0.5
+
 # Dark Gray Material
 darkGrayMaterial = bpy.data.materials.new("darkGrayMaterial")
 darkGrayMaterial.diffuse_color = (0.1, 0.1, 0.1)
 darkGrayMaterial.diffuse_shader = 'LAMBERT'
 darkGrayMaterial.diffuse_intensity = 0.1
 darkGrayMaterial.emit = 0.5
+
+# Medium Gray Material
+medGrayMaterial = bpy.data.materials.new("medGrayMaterial")
+medGrayMaterial.diffuse_color = (0.5, 0.5, 0.5)
+medGrayMaterial.diffuse_shader = 'LAMBERT'
+medGrayMaterial.diffuse_intensity = 0.1
+medGrayMaterial.emit = 0.5
 
 # White Material
 whiteMaterial = bpy.data.materials.new("whiteMaterial")
@@ -79,6 +93,11 @@ def select_object(the_object):
     bpy.context.selected_objects.append(the_object)
     return
 
+def add_colour(the_colour):
+    bpy.ops.object.shade_smooth()
+    bpy.context.object.data.materials.append(the_colour)
+    return
+
 # Fills the Terrain array
 def fill_tile_array():
     log("fill_tile_array called...")
@@ -95,7 +114,7 @@ def fill_tile_array():
             AlleyWay[row][col] = alley_chance
 
             chance = random.uniform(0, 1)            
-            if chance <= 0.9:
+            if chance <= 0.8:
                 log("[%d,%d] = BUILDING" % (row, col))
                 TILES[row][col] = BUILDING
             elif chance <= 1.0:
@@ -149,13 +168,9 @@ def add_water_plane():
     tileRange = tileScale * TILENUMBER
     
     water = bpy.ops.mesh.primitive_plane_add(location = (0, 0, -0.8))
-    
     select_object(water)
-    
     bpy.ops.transform.resize(value=(tileRange, tileRange, 1))
-    
-    bpy.ops.object.shade_smooth()
-    bpy.context.object.data.materials.append(blueMaterial)
+    add_colour(blueMaterial)
     
     log("Done.")
     return
@@ -259,24 +274,63 @@ def create_building_park(x, y, row, col, tileType):
         base = bpy.ops.mesh.primitive_cube_add(location = (x+move_x, y+move_y, base_z))
         select_object(base)
         bpy.ops.transform.resize(value=(scale_b_x, scale_b_y, base_z))
-        bpy.ops.object.shade_smooth()
-        bpy.context.object.data.materials.append(redMaterial)
+        colour_chance = random.randint(0, 3)
+        if colour_chance == 0:
+            add_colour(whiteMaterial)
+        elif colour_chance == 1:
+            add_colour(darkGrayMaterial)
+        elif colour_chance == 2:
+            add_colour(medGrayMaterial)
+        else:
+            add_colour(redMaterial)
         
         # Create Building Top
         top_z = random.randint(base_z+1, base_z*2)
         top = bpy.ops.mesh.primitive_cube_add(location = (x+move_x, y+move_y, top_z))
         select_object(top)
         bpy.ops.transform.resize(value=(scale_t_x, scale_t_y, top_z))
-        bpy.ops.object.shade_smooth()
-        bpy.context.object.data.materials.append(redMaterial)
+        colour_chance = random.randint(0, 3)
+        if colour_chance == 0:
+            add_colour(whiteMaterial)
+        elif colour_chance == 1:
+            add_colour(darkGrayMaterial)
+        elif colour_chance == 2:
+            add_colour(medGrayMaterial)
+        else:
+            add_colour(redMaterial)
     
     elif tileType == PARK:  
         # Create Park
         park = bpy.ops.mesh.primitive_plane_add(location = (x+move_x, y+move_y, 0.01))
         select_object(park)
         bpy.ops.transform.resize(value = (scale_b_x, scale_b_y, 1))
-        bpy.ops.object.shade_smooth()
-        bpy.context.object.data.materials.append(greenMaterial)
+        add_colour(greenMaterial)
+        
+        # Add Some Trees To The Park
+        numTree = random.randint(2, 5)
+        for tree in range (numTree):
+            randX = random.uniform(-0.4, 0.4)
+            randY = random.uniform(-0.4, 0.4)
+            treeThickness = random.uniform(0.1, 0.2)
+            treeHeight = random.uniform(0.3, 0.6)
+            treeTopZ = random.uniform(0.1, 0.3)
+            
+            treeTrunk = bpy.ops.mesh.primitive_cylinder_add(radius = treeThickness, depth = treeHeight, location = (x+randX, y+randY, treeHeight/2))
+            select_object(treeTrunk)
+            bpy.ops.transform.resize(value = (0.5, 0.5, 1))
+            add_colour(brownMaterial)
+            
+            treeTop = bpy.ops.mesh.primitive_uv_sphere_add(location = (x+randX, y+randY, treeHeight))
+            select_object(treeTop)
+            bpy.ops.transform.resize(value = (treeThickness, treeThickness, treeTopZ))
+            add_colour(greenMaterial)
+        
+        pondChance = bool(random.getrandbits(1))
+        if pondChance:         
+            pond = bpy.ops.mesh.primitive_uv_sphere_add(location = (x+random.uniform(-0.2, 0.2), y+random.uniform(-0.2, 0.2), 0.01))
+            select_object(pond)
+            bpy.ops.transform.resize(value = (random.uniform(0.2, 0.5), random.uniform(0.2, 0.5), 0.01))
+            add_colour(blueMaterial)
         
     # Create surrounding path and road
     create_road_and_path(x, y, row, col)
@@ -348,36 +402,31 @@ def create_road_and_path(x, y, row, col):
     ground = bpy.ops.mesh.primitive_plane_add(location = (x, y, 0))
     select_object(ground)
     bpy.ops.transform.resize(value = (1.5, 1.5, 1))
-    bpy.ops.object.shade_smooth()
-    bpy.context.object.data.materials.append(darkGrayMaterial)
+    add_colour(darkGrayMaterial)
     
     # First Path
     path = bpy.ops.mesh.primitive_plane_add(location = (x+1.1+move_x_2, y+slide_y, 0.01))
     select_object(path)
     bpy.ops.transform.resize(value = (0.1, path_length_y, 1))
-    bpy.ops.object.shade_smooth()
-    bpy.context.object.data.materials.append(whiteMaterial)
+    add_colour(whiteMaterial)
     
     # Second Path
     path = bpy.ops.mesh.primitive_plane_add(location = (x-1.1+move_x_1, y+slide_y, 0.01))
     select_object(path)
     bpy.ops.transform.resize(value = (0.1, path_length_y, 1))
-    bpy.ops.object.shade_smooth()
-    bpy.context.object.data.materials.append(whiteMaterial)
+    add_colour(whiteMaterial)
 
     # Third Path
     path = bpy.ops.mesh.primitive_plane_add(location = (x+slide_x, y+1.1+move_y_2, 0.01))
     select_object(path)
     bpy.ops.transform.resize(value = (path_length_x, 0.1, 1))
-    bpy.ops.object.shade_smooth()
-    bpy.context.object.data.materials.append(whiteMaterial)
+    add_colour(whiteMaterial)
     
     # Forth Path
     path = bpy.ops.mesh.primitive_plane_add(location = (x+slide_x, y-1.1+move_y_1, 0.01))
     select_object(path)
     bpy.ops.transform.resize(value = (path_length_x, 0.1, 1))
-    bpy.ops.object.shade_smooth()
-    bpy.context.object.data.materials.append(whiteMaterial)
+    add_colour(whiteMaterial)
     
     return
 
