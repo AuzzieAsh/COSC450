@@ -9,15 +9,13 @@ import os
 import time
 
 DO_LOGGING = True # Change if logging should be on or off
-TILENUMBER = 10 # Number of tiles for x (rows) and y (cols)
+TILENUMBER = 30 # Number of tiles for x (rows) and y (cols)
 
 # Constants for Terrain
 EMPTY = -1
 BUILDING = 0
 PARK = 1
 RIVER = 2
-BUILDING_WIDE = 3
-BUILDING_LARGE = 4
 
 # Stores what is in every tile
 TILES = [[0 for rows in range(TILENUMBER)] for cols in range(TILENUMBER)]
@@ -87,18 +85,19 @@ def log(to_write):
         log_file.flush()
     return
 
-# Clear and select an the_object
+# Clear and select the_object
 def select_object(the_object):
     bpy.context.selected_objects.clear()
     bpy.context.selected_objects.append(the_object)
     return
 
+# Add the_colour to a selected object
 def add_colour(the_colour):
     bpy.ops.object.shade_smooth()
     bpy.context.object.data.materials.append(the_colour)
     return
 
-# Fills the Terrain array
+# Fills the Tile array
 def fill_tile_array():
     log("fill_tile_array called...")
   
@@ -114,7 +113,7 @@ def fill_tile_array():
             AlleyWay[row][col] = alley_chance
 
             chance = random.uniform(0, 1)            
-            if chance <= 0.8:
+            if chance <= 1.8:
                 log("[%d,%d] = BUILDING" % (row, col))
                 TILES[row][col] = BUILDING
             elif chance <= 1.0:
@@ -214,94 +213,199 @@ def create_river(x, y, row, col):
 
 # Creates a building on an x,y tile
 def create_building_park(x, y, row, col, tileType):
+
+    scale_b_x = 0.5
+    scale_t_x = 0.4
     
-    scale_b_x = 1
-    scale_t_x = 0.8
-    move_x = 0
+    scale_b_y = 0.5
+    scale_t_y = 0.4
     
-    scale_b_y = 1
-    scale_t_y = 0.8
-    move_y = 0
-    
-    if row == 0 or row == len(TILES)-1:
-        scale_b_x -= 0.2
-        scale_t_x -= 0.2
+    if tileType == BUILDING:
+        # How many Building to occupy a single tile
+        numOfBuildings = random.randint(1, 3)
         
-    if row == 0:
-        move_x += 0.2
-    elif row == len(TILES)-1:
-        move_x -= 0.2
+        # Basic short 1 building
+        if numOfBuildings == 1:
+            base_z = random.uniform(0.5,1)
+            base = bpy.ops.mesh.primitive_cube_add(location = (x,y,base_z))
+            select_object(base)
+            bpy.ops.transform.resize(value=(1,1,base_z))
         
-    if col == 0 or col == len(TILES[0])-1:
-        scale_b_y -= 0.2
-        scale_t_y -= 0.2
+        # 2 buildings on a single tile
+        elif numOfBuildings == 2:
+            doSideBySide = bool(random.getrandbits(1))
+            
+            if doSideBySide:
+                doMoveInX = bool(random.getrandbits(1))
+                
+                if doMoveInX:
+                    move_x = 0.7
+                    move_y = 0
+                    scale_x = 1 - move_x
+                    scale_y = 1
+                else:
+                    move_x = 0
+                    move_y = 0.7
+                    scale_x = 1
+                    scale_y = 1 - move_y
+                
+                # Building 1            
+                base_z = random.uniform(1,2)
+                base = bpy.ops.mesh.primitive_cube_add(location = (x+move_x, y+move_y, base_z))
+                select_object(base)
+                bpy.ops.transform.resize(value=(scale_x, scale_y, base_z))
+                
+                # Building 2
+                base_z = random.uniform(1,2)
+                base = bpy.ops.mesh.primitive_cube_add(location = (x-move_x, y-move_y, base_z))
+                select_object(base)
+                bpy.ops.transform.resize(value=(scale_x, scale_y, base_z))
+                
+            else: #doCornerBuilding
+                doPositiveInX = bool(random.getrandbits(1))
+                doPositiveInY = bool(random.getrandbits(1))
+                
+                if doPositiveInX:
+                    move_x = 0.6
+                    move_sec_x = move_x + 0.1
+                    scale_x = 1 - move_x
+                else: # doNegativeInX
+                    move_x = -0.6
+                    move_sec_x = move_x - 0.1
+                    scale_x = 1 + move_x
+                
+                if doPositiveInY:
+                    move_y = 0.6
+                    move_sec_y = move_y + 0.1
+                    scale_y = 1 - move_y
+                else: # doNegativeInY
+                    move_y = -0.6
+                    move_sec_y = move_y - 0.1
+                    scale_y = 1 + move_y
+                
+                # Building 1, made up of two blocks
+                base_z = random.uniform(1,2)
+                
+                base = bpy.ops.mesh.primitive_cube_add(location = (x+move_x, y, base_z))
+                select_object(base)
+                bpy.ops.transform.resize(value=(scale_x, 1, base_z))
+                
+                base = bpy.ops.mesh.primitive_cube_add(location = (x, y+move_y, base_z))
+                select_object(base)
+                bpy.ops.transform.resize(value=(1, scale_y, base_z))
+                
+                # Building 2, chance of it being created
+                doSecondBuilding = bool(random.getrandbits(1))
+                if doSecondBuilding:
+                    base_z = random.uniform(base_z, base_z+1)
+                    base = bpy.ops.mesh.primitive_cube_add(location = (x-move_sec_x, y-move_sec_y, base_z))
+                    select_object(base)
+                    bpy.ops.transform.resize(value=(scale_x-0.1, scale_y-0.1, base_z))
         
-    if col == 0:
-        move_y += 0.2
-    elif col == len(TILES[0])-1:
-        move_y -= 0.2
+        # Create 3 buildings on a tile
+        elif numOfBuildings == 3:
+            doLongBuilding = bool(random.getrandbits(1))
+            doPositiveInX = bool(random.getrandbits(1))
+            doPositiveInY = bool(random.getrandbits(1))
+            
+            if doLongBuilding:
+                doMoveInX = bool(random.getrandbits(1))
+                
+                if doMoveInX:
+                    move_y = 0
+                    scale_y = 1
+                    
+                    if doPositiveInX:
+                        move_x = 0.6
+                        scale_x = 1 - move_x
+                    else: # doNegativeInX
+                        move_x = -0.6
+                        scale_x = 1 + move_x
         
-    if row != 0 and col != 0 and row != len(TILES)-1 and col != len(TILES[0])-1:
-        if AlleyWay[row][col][0] != AlleyWay[row][col][1]:
-            if AlleyWay[row][col][0] == 1:
-                move_y += 0.1
-                scale_b_y += 0.1
-                scale_t_y += 0.1
-            elif AlleyWay[row][col][1] == 1:
-                move_y -= 0.1
-                scale_b_y += 0.1
-                scale_t_y += 0.1
-        elif AlleyWay[row][col][0] == 1:
-            scale_b_y += 0.2
-            scale_t_y += 0.2
-        
-        if AlleyWay[row][col][2] != AlleyWay[row][col][3]:
-            if AlleyWay[row][col][2] == 1:
-                move_x -= 0.1
-                scale_b_x += 0.1
-                scale_t_x += 0.1
-            elif AlleyWay[row][col][3] == 1:
-                move_x += 0.1
-                scale_b_x += 0.1
-                scale_t_x += 0.1
-        elif AlleyWay[row][col][2] == 1:
-            scale_b_x += 0.2
-            scale_t_x += 0.2
-    
-    if tileType == BUILDING:  
-        # Create Building Base
-        base_z = random.randint(2, 4)
-        base = bpy.ops.mesh.primitive_cube_add(location = (x+move_x, y+move_y, base_z))
-        select_object(base)
-        bpy.ops.transform.resize(value=(scale_b_x, scale_b_y, base_z))
-        colour_chance = random.randint(0, 3)
-        if colour_chance == 0:
-            add_colour(whiteMaterial)
-        elif colour_chance == 1:
-            add_colour(darkGrayMaterial)
-        elif colour_chance == 2:
-            add_colour(medGrayMaterial)
+                else: # doMoveInY
+                    move_x = 0
+                    scale_x = 1
+                    
+                    if doPositiveInY:
+                        move_y = 0.6
+                        scale_y = 1 - move_y
+                    else: # doNegativeInY
+                        move_y = -0.6
+                        scale_y = 1 + move_y
+                
+                base_z = random.uniform(1,2)
+                base = bpy.ops.mesh.primitive_cube_add(location = (x+move_x, y+move_y, base_z))
+                select_object(base)
+                bpy.ops.transform.resize(value=(scale_x, scale_y, base_z))
+                
+                if doMoveInX:
+                    base_z = random.uniform(base_z, base_z+2)
+                    base = bpy.ops.mesh.primitive_cube_add(location = (x-move_x, y-move_x, base_z))
+                    select_object(base)
+                    bpy.ops.transform.resize(value=(scale_x, scale_x, base_z))
+                    
+                    base_z = random.uniform(base_z, base_z+2)
+                    base = bpy.ops.mesh.primitive_cube_add(location = (x-move_x, y+move_x, base_z))
+                    select_object(base)
+                    bpy.ops.transform.resize(value=(scale_x, scale_x, base_z))
+                
+                else: # doMoveInY
+                    base_z = random.uniform(base_z, base_z+2)
+                    base = bpy.ops.mesh.primitive_cube_add(location = (x-move_y, y-move_y, base_z))
+                    select_object(base)
+                    bpy.ops.transform.resize(value=(scale_y, scale_y, base_z))
+                    
+                    base_z = random.uniform(base_z, base_z+2)
+                    base = bpy.ops.mesh.primitive_cube_add(location = (x+move_y, y-move_y, base_z))
+                    select_object(base)
+                    bpy.ops.transform.resize(value=(scale_y, scale_y, base_z))
+                    
+            else: # !doLongBuilding
+                # [TL=0, TR=1, BL=2, BR=3]
+                emptySpot = random.randint(0,3)
+                move_xy = 0.6
+                scale_xy = 1 - move_xy
+                
+                if emptySpot != 0:
+                    base_z = random.uniform(2,3)
+                    base = bpy.ops.mesh.primitive_cube_add(location = (x+move_xy, y-move_xy, base_z))
+                    select_object(base)
+                    bpy.ops.transform.resize(value=(scale_xy, scale_xy, base_z))
+
+                if emptySpot != 1:
+                    base_z = random.uniform(2,3)
+                    base = bpy.ops.mesh.primitive_cube_add(location = (x+move_xy, y+move_xy, base_z))
+                    select_object(base)
+                    bpy.ops.transform.resize(value=(scale_xy, scale_xy, base_z))
+
+                if emptySpot != 2:
+                    base_z = random.uniform(2,3)
+                    base = bpy.ops.mesh.primitive_cube_add(location = (x-move_xy, y-move_xy, base_z))
+                    select_object(base)
+                    bpy.ops.transform.resize(value=(scale_xy, scale_xy, base_z))
+                    
+                if emptySpot != 3:
+                    base_z = random.uniform(2,3)
+                    base = bpy.ops.mesh.primitive_cube_add(location = (x-move_xy, y+move_xy, base_z))
+                    select_object(base)
+                    bpy.ops.transform.resize(value=(scale_xy, scale_xy, base_z))
+                
         else:
-            add_colour(redMaterial)
-        
-        # Create Building Top
-        top_z = random.randint(base_z+1, base_z*2)
-        top = bpy.ops.mesh.primitive_cube_add(location = (x+move_x, y+move_y, top_z))
-        select_object(top)
-        bpy.ops.transform.resize(value=(scale_t_x, scale_t_y, top_z))
-        colour_chance = random.randint(0, 3)
-        if colour_chance == 0:
-            add_colour(whiteMaterial)
-        elif colour_chance == 1:
-            add_colour(darkGrayMaterial)
-        elif colour_chance == 2:
-            add_colour(medGrayMaterial)
-        else:
-            add_colour(redMaterial)
+            # Create Building Base
+            base_z = random.randint(2, 4)
+            base = bpy.ops.mesh.primitive_cube_add(location = (x, y, base_z))
+            select_object(base)
+            bpy.ops.transform.resize(value=(scale_b_x, scale_b_y, base_z))
+            
+            # Create Building Top
+            top_z = random.randint(base_z+1, base_z*2)
+            top = bpy.ops.mesh.primitive_cube_add(location = (x, y, top_z))
+            select_object(top)
+            bpy.ops.transform.resize(value=(scale_t_x, scale_t_y, top_z))
     
     elif tileType == PARK:  
         # Create Park
-        park = bpy.ops.mesh.primitive_plane_add(location = (x+move_x, y+move_y, 0.01))
+        park = bpy.ops.mesh.primitive_plane_add(location = (x, y, 0.01))
         select_object(park)
         bpy.ops.transform.resize(value = (scale_b_x, scale_b_y, 1))
         add_colour(greenMaterial)
@@ -333,7 +437,7 @@ def create_building_park(x, y, row, col, tileType):
             add_colour(blueMaterial)
         
     # Create surrounding path and road
-    create_road_and_path(x, y, row, col)
+    #create_road_and_path(x, y, row, col)
     
     return
 
@@ -448,7 +552,7 @@ log("start logging")
 # Generate the City
 fill_tile_array()
 render_tile_array()
-add_water_plane()
+#add_water_plane()
 
 log("Tiles Rows: %d" %len(TILES))
 log("Tiles Cols: %d" %len(TILES[0]))
