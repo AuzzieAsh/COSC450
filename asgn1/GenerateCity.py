@@ -9,7 +9,8 @@ import os
 import time
 
 DO_LOGGING = True # Change if logging should be on or off
-TILENUMBER = 30 # Number of tiles for x (rows) and y (cols)
+TILENUMBER = 9 # Number of tiles for x (rows) and y (cols)
+ZONESIZE = TILENUMBER / 3
 
 # Constants for Terrain
 EMPTY = -1
@@ -85,18 +86,32 @@ def log(to_write):
         log_file.flush()
     return
 
-# Clear and select the_object
 def select_object(the_object):
     bpy.context.selected_objects.clear()
     bpy.context.selected_objects.append(the_object)
     return
 
-# Add the_colour to a selected object
 def add_colour(the_colour):
     bpy.ops.object.shade_smooth()
     bpy.context.object.data.materials.append(the_colour)
     return
 
+def resize_object(x, y, z):
+    bpy.ops.transform.resize(value = (x,y,z))
+    return
+
+def cube_add(x, y, z):
+    cube = bpy.ops.mesh.primitive_cube_add(location = (x,y,z))
+    return cube
+
+def cylinder_add(r, d, x, y, z):
+    cylinder = bpy.ops.mesh.primitive_cylinder_add(radius = r, depth = d, location = (x, y, z))       
+    return cylinder
+
+def sphere_add(x, y, z):
+    sphere = bpy.ops.mesh.primitive_uv_sphere_add(location = (x, y, z))
+    return sphere
+            
 # Fills the Tile array
 def fill_tile_array():
     log("fill_tile_array called...")
@@ -214,22 +229,21 @@ def create_river(x, y, row, col):
 # Creates a building on an x,y tile
 def create_building_park(x, y, row, col, tileType):
 
-    scale_b_x = 0.5
-    scale_t_x = 0.4
-    
-    scale_b_y = 0.5
-    scale_t_y = 0.4
-    
     if tileType == BUILDING:
         # How many Building to occupy a single tile
-        numOfBuildings = random.randint(1, 3)
+        numOfBuildings = random.randint(1, 4)
         
         # Basic short 1 building
         if numOfBuildings == 1:
+            doSquareBuilding = random.uniform(0,1)
             base_z = random.uniform(0.5,1)
-            base = bpy.ops.mesh.primitive_cube_add(location = (x,y,base_z))
-            select_object(base)
-            bpy.ops.transform.resize(value=(1,1,base_z))
+            
+            if doSquareBuilding <= 0.95:
+                base = cube_add(x,y,base_z)
+                select_object(base)
+                resize_object(1,1,base_z)
+            else: # doSquareBuilding > 0.95
+                base = cylinder_add(1, base_z*2, x, y, base_z)
         
         # 2 buildings on a single tile
         elif numOfBuildings == 2:
@@ -243,23 +257,37 @@ def create_building_park(x, y, row, col, tileType):
                     move_y = 0
                     scale_x = 1 - move_x
                     scale_y = 1
-                else:
+                else: # doMoveInY
                     move_x = 0
                     move_y = 0.7
                     scale_x = 1
                     scale_y = 1 - move_y
                 
-                # Building 1            
+                # Building 1      
+                doSquareBuilding = random.uniform(0,1)
                 base_z = random.uniform(1,2)
-                base = bpy.ops.mesh.primitive_cube_add(location = (x+move_x, y+move_y, base_z))
-                select_object(base)
-                bpy.ops.transform.resize(value=(scale_x, scale_y, base_z))
                 
+                if doSquareBuilding <= 0.9:
+                    base = cube_add(x+move_x, y+move_y, base_z)
+                    select_object(base)
+                    resize_object(scale_x, scale_y, base_z)
+                else: # doSquareBuilding > 0.9
+                    base = cylinder_add(1, base_z*2, x+move_x, y+move_y, base_z)
+                    select_object(base)
+                    resize_object(scale_x, scale_y, 1)
+                    
                 # Building 2
+                doSquareBuilding = random.uniform(0,1)
                 base_z = random.uniform(1,2)
-                base = bpy.ops.mesh.primitive_cube_add(location = (x-move_x, y-move_y, base_z))
-                select_object(base)
-                bpy.ops.transform.resize(value=(scale_x, scale_y, base_z))
+                
+                if doSquareBuilding <= 0.9:
+                    base = cube_add(x-move_x, y-move_y, base_z)
+                    select_object(base)
+                    resize_object(scale_x, scale_y, base_z)
+                else: # doSquareBuilding > 0.9
+                    base = cylinder_add(1, base_z*2, x-move_x, y-move_y, base_z)
+                    select_object(base)
+                    resize_object(scale_x, scale_y, 1)
                 
             else: #doCornerBuilding
                 doPositiveInX = bool(random.getrandbits(1))
@@ -286,21 +314,37 @@ def create_building_park(x, y, row, col, tileType):
                 # Building 1, made up of two blocks
                 base_z = random.uniform(1,2)
                 
-                base = bpy.ops.mesh.primitive_cube_add(location = (x+move_x, y, base_z))
+                base = cube_add(x+move_x, y, base_z)
                 select_object(base)
-                bpy.ops.transform.resize(value=(scale_x, 1, base_z))
+                resize_object(scale_x, 1, base_z)
                 
-                base = bpy.ops.mesh.primitive_cube_add(location = (x, y+move_y, base_z))
+                base = cube_add(x, y+move_y, base_z)
                 select_object(base)
-                bpy.ops.transform.resize(value=(1, scale_y, base_z))
+                resize_object(1, scale_y, base_z)
                 
                 # Building 2, chance of it being created
                 doSecondBuilding = bool(random.getrandbits(1))
-                if doSecondBuilding:
+                if doSecondBuilding:            
+                    doSquareBuilding = random.uniform(0,1)
                     base_z = random.uniform(base_z, base_z+1)
-                    base = bpy.ops.mesh.primitive_cube_add(location = (x-move_sec_x, y-move_sec_y, base_z))
-                    select_object(base)
-                    bpy.ops.transform.resize(value=(scale_x-0.1, scale_y-0.1, base_z))
+                    
+                    if doSquareBuilding <= 0.8:
+                        base = cube_add(x-move_sec_x, y-move_sec_y, base_z)
+                        select_object(base)
+                        resize_object(scale_x-0.1, scale_y-0.1, base_z)
+                    else: # doSquareBuilding > 0.8
+                        base = cylinder_add(1, base_z*2, x-move_sec_x, y-move_sec_y, base_z)
+                        select_object(base)
+                        resize_object(scale_x-0.1, scale_y-0.1, 1)
+                
+                else: # !doSecondBuilding
+                    treeBot = cylinder_add(0.07, 0.4, x-(move_sec_x/2), y-(move_sec_y/2), 0.2)
+                    select_object(treeBot)
+                    add_colour(brownMaterial)
+                    treeTop = sphere_add(x-(move_sec_x/2), y-(move_sec_y/2), 0.4)
+                    select_object(treeTop)
+                    resize_object(0.15, 0.15, 0.15)
+                    add_colour(greenMaterial)
         
         # Create 3 buildings on a tile
         elif numOfBuildings == 3:
@@ -334,74 +378,84 @@ def create_building_park(x, y, row, col, tileType):
                         scale_y = 1 + move_y
                 
                 base_z = random.uniform(1,2)
-                base = bpy.ops.mesh.primitive_cube_add(location = (x+move_x, y+move_y, base_z))
+                base = cube_add(x+move_x, y+move_y, base_z)
                 select_object(base)
-                bpy.ops.transform.resize(value=(scale_x, scale_y, base_z))
+                resize_object(scale_x, scale_y, base_z)
                 
                 if doMoveInX:
                     base_z = random.uniform(base_z, base_z+2)
-                    base = bpy.ops.mesh.primitive_cube_add(location = (x-move_x, y-move_x, base_z))
+                    base = cube_add(x-move_x, y-move_x, base_z)
                     select_object(base)
-                    bpy.ops.transform.resize(value=(scale_x, scale_x, base_z))
+                    resize_object(scale_x, scale_x, base_z)
                     
                     base_z = random.uniform(base_z, base_z+2)
-                    base = bpy.ops.mesh.primitive_cube_add(location = (x-move_x, y+move_x, base_z))
+                    base = cube_add(x-move_x, y+move_x, base_z)
                     select_object(base)
-                    bpy.ops.transform.resize(value=(scale_x, scale_x, base_z))
+                    resize_object(scale_x, scale_x, base_z)
                 
                 else: # doMoveInY
                     base_z = random.uniform(base_z, base_z+2)
-                    base = bpy.ops.mesh.primitive_cube_add(location = (x-move_y, y-move_y, base_z))
+                    base = cube_add(x-move_y, y-move_y, base_z)
                     select_object(base)
-                    bpy.ops.transform.resize(value=(scale_y, scale_y, base_z))
+                    resize_object(scale_y, scale_y, base_z)
                     
                     base_z = random.uniform(base_z, base_z+2)
-                    base = bpy.ops.mesh.primitive_cube_add(location = (x+move_y, y-move_y, base_z))
+                    base = cube_add(x+move_y, y-move_y, base_z)
                     select_object(base)
-                    bpy.ops.transform.resize(value=(scale_y, scale_y, base_z))
+                    resize_object(scale_y, scale_y, base_z)
                     
             else: # !doLongBuilding
-                # [TL=0, TR=1, BL=2, BR=3]
-                emptySpot = random.randint(0,3)
+                emptySpot = random.randint(0,3) # [TL=0, TR=1, BL=2, BR=3]
                 move_xy = 0.6
                 scale_xy = 1 - move_xy
                 
                 if emptySpot != 0:
                     base_z = random.uniform(2,3)
-                    base = bpy.ops.mesh.primitive_cube_add(location = (x+move_xy, y-move_xy, base_z))
+                    base = cube_add(x+move_xy, y-move_xy, base_z)
                     select_object(base)
-                    bpy.ops.transform.resize(value=(scale_xy, scale_xy, base_z))
+                    resize_object(scale_xy, scale_xy, base_z)
 
                 if emptySpot != 1:
                     base_z = random.uniform(2,3)
-                    base = bpy.ops.mesh.primitive_cube_add(location = (x+move_xy, y+move_xy, base_z))
+                    base = cube_add(x+move_xy, y+move_xy, base_z)
                     select_object(base)
-                    bpy.ops.transform.resize(value=(scale_xy, scale_xy, base_z))
+                    resize_object(scale_xy, scale_xy, base_z)
 
                 if emptySpot != 2:
                     base_z = random.uniform(2,3)
-                    base = bpy.ops.mesh.primitive_cube_add(location = (x-move_xy, y-move_xy, base_z))
+                    base = cube_add(x-move_xy, y-move_xy, base_z)
                     select_object(base)
-                    bpy.ops.transform.resize(value=(scale_xy, scale_xy, base_z))
+                    resize_object(scale_xy, scale_xy, base_z)
                     
                 if emptySpot != 3:
                     base_z = random.uniform(2,3)
-                    base = bpy.ops.mesh.primitive_cube_add(location = (x-move_xy, y+move_xy, base_z))
+                    base = cube_add(x-move_xy, y+move_xy, base_z)
                     select_object(base)
-                    bpy.ops.transform.resize(value=(scale_xy, scale_xy, base_z))
+                    resize_object(scale_xy, scale_xy, base_z)
                 
-        else:
-            # Create Building Base
-            base_z = random.randint(2, 4)
-            base = bpy.ops.mesh.primitive_cube_add(location = (x, y, base_z))
+        else: # numOfBuildings == 4
+            move_xy = 0.6
+            scale_xy = 1 - move_xy
+                
+            base_z = random.uniform(2,3)
+            base = cube_add(x+move_xy, y-move_xy, base_z)
             select_object(base)
-            bpy.ops.transform.resize(value=(scale_b_x, scale_b_y, base_z))
+            resize_object(scale_xy, scale_xy, base_z)
+
+            base_z = random.uniform(2,3)
+            base = cube_add(x+move_xy, y+move_xy, base_z)
+            select_object(base)
+            resize_object(scale_xy, scale_xy, base_z)
+
+            base_z = random.uniform(2,3)
+            base = cube_add(x-move_xy, y-move_xy, base_z)
+            select_object(base)
+            resize_object(scale_xy, scale_xy, base_z)
             
-            # Create Building Top
-            top_z = random.randint(base_z+1, base_z*2)
-            top = bpy.ops.mesh.primitive_cube_add(location = (x, y, top_z))
-            select_object(top)
-            bpy.ops.transform.resize(value=(scale_t_x, scale_t_y, top_z))
+            base_z = random.uniform(2,3)
+            base = cube_add(x-move_xy, y+move_xy, base_z)
+            select_object(base)
+            resize_object(scale_xy, scale_xy, base_z)
     
     elif tileType == PARK:  
         # Create Park
