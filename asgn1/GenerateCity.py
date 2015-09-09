@@ -9,8 +9,8 @@ import os
 import time
 
 DOLOGGING = True # Change if logging should be on or off
-TILENUMBER_X = 4 # Number of tiles for x (rows)
-TILENUMBER_Y = 3 # Number of tiles for y (cols)
+TILENUMBER_X = 30 # Number of tiles for x (rows)
+TILENUMBER_Y = 30 # Number of tiles for y (cols)
 DOCITY = True # Change if the City should be generated
 DOGROUND = True # Change if the Ground should be created
 DOOCEAN = True # Change if the Ocean should be created
@@ -26,17 +26,24 @@ TILES = [[0 for rows in range(TILENUMBER_X)] for cols in range(TILENUMBER_Y)]
 
 # Green Material
 greenMaterial = bpy.data.materials.new("greenMaterial")
-greenMaterial.diffuse_color = (0, 1 ,0)
+greenMaterial.diffuse_color = (0, 1, 0)
 greenMaterial.diffuse_shader = 'LAMBERT'
 greenMaterial.diffuse_intensity = 0.1
 greenMaterial.emit = 0.5
 
 # Brown Material
 brownMaterial = bpy.data.materials.new("brownMaterial")
-brownMaterial.diffuse_color = (0.8, 0.2 ,0.1)
+brownMaterial.diffuse_color = (0.8, 0.2, 0.1)
 brownMaterial.diffuse_shader = 'LAMBERT'
 brownMaterial.diffuse_intensity = 0.1
 brownMaterial.emit = 0.5
+
+# Sand Material
+sandMaterial = bpy.data.materials.new("sandMaterial")
+sandMaterial.diffuse_color = (0.9, 0.8, 0.3)
+sandMaterial.diffuse_shader = 'LAMBERT'
+sandMaterial.diffuse_intensity = 0.1
+sandMaterial.emit = 0.5
 
 # Dark Gray Material
 darkGrayMaterial = bpy.data.materials.new("darkGrayMaterial")
@@ -614,23 +621,28 @@ if DOBORDER:
     resize_object(0.1, 1, 1)
     rotate_object(90, 'x')
     rotate_object(90, 'y')
+    add_colour(sandMaterial)
 
     cylinder = cylinder_add(1, len_y, 0, y, -0.1)
     select_object(cylinder)
     resize_object(0.1, 1, 1)
     rotate_object(90, 'y')
+    add_colour(sandMaterial)
 
     sphere = sphere_add(x, y, -0.1)
     select_object(sphere)
     resize_object(1, 1, 0.1)
+    add_colour(sandMaterial)
     
     sphere = sphere_add(-x, y, -0.1)
     select_object(sphere)
     resize_object(1, 1, 0.1)
+    add_colour(sandMaterial)
 
     sphere = sphere_add(x, -y, -0.1)
     select_object(sphere)
     resize_object(1, 1, 0.1)
+    add_colour(sandMaterial)
     
     log("Done")
 log("Tiles Rows: %d" %len(TILES))
