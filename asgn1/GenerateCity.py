@@ -9,8 +9,8 @@ import os
 import time
 
 DOLOGGING = True # Change if logging should be on or off
-TILENUMBER_X = 30 # Number of tiles for x (rows)
-TILENUMBER_Y = 30 # Number of tiles for y (cols)
+TILENUMBER_X = 5 # Number of tiles for x (rows)
+TILENUMBER_Y = 5 # Number of tiles for y (cols)
 DOCITY = True # Change if the City should be generated
 DOGROUND = True # Change if the Ground should be created
 DOOCEAN = True # Change if the Ocean should be created
@@ -644,7 +644,29 @@ if DOBORDER:
     resize_object(1, 1, 0.1)
     add_colour(sandMaterial)
     
+    plane = plane_add(-x-0.7, -1, 0.5)
+    select_object(plane)
+    resize_object(len_x/2+1, 1, 1)
+    rotate_object(90, 'z')
+    rotate_object(35, 'y')
+    add_colour(brownMaterial)
+    
+    plane = plane_add(-1, -y-0.7, 0.5)
+    select_object(plane)
+    resize_object(1, len_y/2+1, 1)
+    rotate_object(90, 'z')
+    rotate_object(-35, 'x')
+    add_colour(brownMaterial)
+    
+    plane = plane_add(-x-0.5, -y-0.5, 0.5)
+    select_object(plane)
+    resize_object(1, 1, 1)
+    add_colour(brownMaterial)
+    rotate_object(-35, 'x')
+    rotate_object(-45, 'z')
+    
     log("Done")
+    
 log("Tiles Rows: %d" %len(TILES))
 log("Tiles Cols: %d" %len(TILES[0]))
 
