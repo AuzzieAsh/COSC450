@@ -9,7 +9,7 @@ import os
 import time
 
 DOLOGGING = True # Change if logging should be on or off
-TILENUMBER_X = 1 # Number of tiles for x (rows) 
+TILENUMBER_X = 5 # Number of tiles for x (rows) 
 TILENUMBER_Y = 5 # Number of tiles for y (cols)
 DOCITY = True # Change if the City should be generated
 DOGROUND = True # Change if the Ground should be created
@@ -23,6 +23,7 @@ PARK = 1
 
 # Stores what is in every tile
 TILES = [[0 for rows in range(TILENUMBER_X)] for cols in range(TILENUMBER_Y)]
+CAR_COLOURS = []
 
 # Green Material
 greenMaterial = bpy.data.materials.new("greenMaterial")
@@ -86,6 +87,19 @@ blueMaterial.diffuse_color = (0, 0.1, 1)
 blueMaterial.diffuse_shader = 'LAMBERT'
 blueMaterial.diffuse_intensity = 0.1
 blueMaterial.emit = 0.5
+
+# Yellow Material
+yellowMaterial = bpy.data.materials.new("yellowMaterial")
+yellowMaterial.diffuse_color = (1, 1, 0.1)
+yellowMaterial.diffuse_shader = 'LAMBERT'
+yellowMaterial.diffuse_intensity = 0.1
+yellowMaterial.emit = 0.5
+
+CAR_COLOURS.append(redMaterial)
+CAR_COLOURS.append(blueMaterial)
+CAR_COLOURS.append(greenMaterial)
+CAR_COLOURS.append(brownMaterial)
+CAR_COLOURS.append(yellowMaterial)
 
 # Repeated Stuff
 def log(to_write):
@@ -160,20 +174,14 @@ def fill_tile_array():
   
     for row in range(len(TILES)):
         for col in range(len(TILES[0])):
-
-            chance = random.uniform(0, 1)            
-            if chance <= 0.9:
+          
+            if do_this_thing(0.9):
                 log("[%d,%d] = BUILDING" % (row, col))
                 TILES[row][col] = BUILDING
-            elif chance <= 1.0:
+            else:
                 log("[%d,%d] = PARK" % (row, col))
                 TILES[row][col] = PARK
-            else: # Empty
-                log("[%d,%d] = EMPTY" % (row, col))
-                TILES[row][col] = EMPTY
-                
-    log("Done.")
-    
+                    
     return
 
 # Renders what is in the Terrain array
@@ -198,8 +206,6 @@ def render_tile_array():
                 log("[%d,%d] PARK Created" % (row, col))
             else: # Empty
                 log("[%d,%d] EMPTY" % (row, col))
-                
-    log("Done.")
     
     return
     
@@ -244,11 +250,15 @@ def create_building(x, y, row, col):
                 move_y = 0
                 scale_x = 1 - move_x
                 scale_y = 1
+                generate_cars_line(1.3, -0.3, random.randint(0, 7), x-0.2, y, 'x')
+                generate_cars_line(-1.3, 0.3, random.randint(0, 7), x+0.2, y, 'x') 
             else: # move along y
                 move_x = 0
                 move_y = 0.7
                 scale_x = 1
                 scale_y = 1 - move_y
+                generate_cars_line(1.3, -0.3, random.randint(0, 7), x, y+0.2, 'y')
+                generate_cars_line(-1.3, 0.3, random.randint(0, 7), x, y-0.2, 'y') 
             
             # Building 1
             base_z = random.uniform(1,2)
@@ -460,25 +470,72 @@ def create_footpath(x, y):
     return
 
 def create_cars(x, y, row, col):
-    cube = cube_add(x-1.3, y, 0.03)
-    select_object(cube)
-    resize_object(0.05, 0.1, 0.03)
-    add_colour(redMaterial)
+    if row == 0:
+        generate_cars_line(1.3, -0.3, random.randint(0, 7), x-1.7, y, 'x')
+    if col == 0:
+        generate_cars_line(-1.3, 0.3, random.randint(0, 7), x, y-1.7, 'y')
+    if row == len(TILES)-1:
+        generate_cars_line(-1.3, 0.3, random.randint(0, 7), x+1.7, y, 'x')
+    if col == len(TILES[0])-1:
+        generate_cars_line(1.3, -0.3, random.randint(0, 7), x, y+1.7, 'y')
     
-    cube = cube_add(x-1.3, y, 0.075)
-    select_object(cube)
-    resize_object(0.05, 0.05, 0.015)
-    add_colour(whiteMaterial)
+    generate_cars_line(-1.3, 0.3, random.randint(0, 7), x-1.3, y, 'x')
+    generate_cars_line(1.3, -0.3, random.randint(0, 7), x, y-1.3, 'y')
+    generate_cars_line(1.3, -0.3, random.randint(0, 7), x+1.3, y, 'x')
+    generate_cars_line(-1.3, 0.3, random.randint(0, 7), x, y+1.3, 'y')
     
-    cylinder = cylinder_add(0.02, 0.11, x-1.3, y+0.05, 0.02)
-    select_object(cylinder)
-    rotate_object(90, 'y')
-    add_colour(darkGrayMaterial)
+    return
+
+def generate_cars_line(start, interval, num_of_cars, x, y, axis):
+    log("Generating %d cars at [%d,%d]" % (num_of_cars, x, y))
     
-    cylinder = cylinder_add(0.02, 0.11, x-1.3, y-0.05, 0.02)
-    select_object(cylinder)
-    rotate_object(90, 'y')
-    add_colour(darkGrayMaterial)
+    if axis == 'x':
+        for i in range(num_of_cars):
+            start += interval
+            
+            cube = cube_add(x, y+start, 0.03)
+            select_object(cube)
+            resize_object(0.05, 0.1, 0.03)
+            add_colour(CAR_COLOURS[random.randint(0, len(CAR_COLOURS)-1)])
+            
+            cube = cube_add(x, y+start, 0.075)
+            select_object(cube)
+            resize_object(0.05, 0.05, 0.015)
+            add_colour(whiteMaterial)
+            
+            cylinder = cylinder_add(0.02, 0.11, x, y+0.05+start, 0.02)
+            select_object(cylinder)
+            rotate_object(90, 'y')
+            add_colour(darkGrayMaterial)
+            
+            cylinder = cylinder_add(0.02, 0.11, x, y-0.05+start, 0.02)
+            select_object(cylinder)
+            rotate_object(90, 'y')
+            add_colour(darkGrayMaterial)
+    
+    else: # axis == 'y'
+        for i in range(num_of_cars):
+            start += interval
+            
+            cube = cube_add(x+start, y, 0.03)
+            select_object(cube)
+            resize_object(0.1, 0.05, 0.03)
+            add_colour(CAR_COLOURS[random.randint(0, len(CAR_COLOURS)-1)])
+            
+            cube = cube_add(x+start, y, 0.075)
+            select_object(cube)
+            resize_object(0.05, 0.05, 0.015)
+            add_colour(whiteMaterial)
+            
+            cylinder = cylinder_add(0.02, 0.11, x+0.05+start, y, 0.02)
+            select_object(cylinder)
+            rotate_object(90, 'x')
+            add_colour(darkGrayMaterial)
+            
+            cylinder = cylinder_add(0.02, 0.11, x-0.05+start, y, 0.02)
+            select_object(cylinder)
+            rotate_object(90, 'x')
+            add_colour(darkGrayMaterial)
     
     return
 
@@ -507,13 +564,14 @@ def create_park(x, y, row, col):
     return
 
 def create_city_border():
-    log("Create City Border...")
+    log("create_city_border called...")
     
     x = ((len(TILES)-1)/2) * 3 + 2
     y = ((len(TILES[0])-1)/2) * 3 + 2
     len_x = (TILENUMBER_X*3) + 1
     len_y = (TILENUMBER_Y*3) + 1
         
+    log("Creating the beach front...")
     # Create the Beach Front    
     cylinder = cylinder_add(1, len_x, x, 0, -0.1)
     select_object(cylinder)
@@ -553,6 +611,7 @@ def create_city_border():
     resize_object(2, 2, 0.1)
     add_colour(sandMaterial)
     
+    log("Beach random variation")
     lower_case_x = min(3, len(TILES)-1)
     beach_extra_x = random.randint(lower_case_x, len(TILES)-1)
     for extra_x in range (beach_extra_x):
@@ -568,8 +627,9 @@ def create_city_border():
         select_object(sphere)
         resize_object(random.uniform(2, 3), random.uniform(2, 3), 0.1)
         add_colour(sandMaterial)
-        
-    # Create the Forest Outskirts
+    
+    log("Creating the mountain outskirts...")
+    # Create the Mountain Outskirts
     cylinder = cylinder_add(1, len_x+1.8, -x-1, -1, 0)
     select_object(cylinder)
     rotate_object(90, 'x')
@@ -582,14 +642,14 @@ def create_city_border():
     resize_object(1, 1, 0.1)
     add_colour(rockMaterial)
     
-    cone = cone_add(-x-1, y, 0.5)
+    cone = cone_add(-x-3, y, 0.5)
     select_object(cone)
-    resize_object(1, 1.5, 0.5)
+    resize_object(3, 1.5, 0.5)
     add_colour(rockMaterial)
 
-    cone = cone_add(x, -y-1, 0.5)
+    cone = cone_add(x, -y-3, 0.5)
     select_object(cone)
-    resize_object(1.5, 1, 0.5)
+    resize_object(1.5, 3, 0.5)
     add_colour(rockMaterial)
     
     cone = cone_add(-x-5, -y-5, 3)
@@ -597,6 +657,7 @@ def create_city_border():
     resize_object(5, 5, 3)
     add_colour(rockMaterial)
     
+    log("Mountain random variation in X")
     mountain_x_len = ((len(TILES)-1)*3)+3
     for mountain_x in range (mountain_x_len):
         rand_height = random.uniform(1, 3)
@@ -608,7 +669,7 @@ def create_city_border():
         
         numTree = random.randint(1, 3)
         for tree in range (numTree):
-            randX = random.uniform(-0.5, 0.5)
+            randX = random.uniform(-1, 1)
             randY = random.uniform(-0.6, -0.2)
             treeThickness = random.uniform(0.05, 0.1)
             treeHeight = random.uniform(0.2, 0.4)
@@ -617,6 +678,7 @@ def create_city_border():
             create_tree(-x+mountain_x+randX, -y+randY, treeThickness, treeHeight, treeTopZ)
             
     
+    log("Mountain random variation in Y")
     mountain_y_len = ((len(TILES[0])-1)*3)+3
     for mountain_y in range (mountain_y_len):
         rand_height = random.uniform(1, 3)
@@ -629,14 +691,13 @@ def create_city_border():
         numTree = random.randint(1, 3)
         for tree in range (numTree):
             randX = random.uniform(-0.6, -0.2)
-            randY = random.uniform(-0.5, 0.5)
+            randY = random.uniform(-1, 1)
             treeThickness = random.uniform(0.05, 0.1)
             treeHeight = random.uniform(0.2, 0.4)
             treeTopZ = random.uniform(0.1, 0.3)
         
             create_tree(-x+randX, -y+mountain_y+randY, treeThickness, treeHeight, treeTopZ)
         
-    log("Done")
     return
 
 # >>> START EXECUTION <<<
@@ -671,8 +732,6 @@ if DOGROUND:
     resize_object(tile_range_x, tile_range_y, 1)
     add_colour(darkGrayMaterial)
 
-    log("Done.")
-
 # Add a plane as the sea level
 if DOOCEAN:
     log("Creating the sea level...")
@@ -683,8 +742,6 @@ if DOOCEAN:
     select_object(water)
     resize_object(tile_range, tile_range, 1)
     add_colour(blueMaterial)
-
-    log("Done.")
 
 # Generate the City Borders
 if DOBORDER:
