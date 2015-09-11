@@ -9,7 +9,7 @@ import os
 import time
 
 DOLOGGING = True # Change if logging should be on or off
-TILENUMBER_X = 5 # Number of tiles for x (rows)
+TILENUMBER_X = 1 # Number of tiles for x (rows) 
 TILENUMBER_Y = 5 # Number of tiles for y (cols)
 DOCITY = True # Change if the City should be generated
 DOGROUND = True # Change if the Ground should be created
@@ -44,6 +44,13 @@ sandMaterial.diffuse_color = (0.9, 0.8, 0.3)
 sandMaterial.diffuse_shader = 'LAMBERT'
 sandMaterial.diffuse_intensity = 0.1
 sandMaterial.emit = 0.5
+
+# Rock Material
+rockMaterial = bpy.data.materials.new("rockMaterial")
+rockMaterial.diffuse_color = (0.4, 0.2, 0.1)
+rockMaterial.diffuse_shader = 'LAMBERT'
+rockMaterial.diffuse_intensity = 0.1
+rockMaterial.emit = 0.5
 
 # Dark Gray Material
 darkGrayMaterial = bpy.data.materials.new("darkGrayMaterial")
@@ -142,6 +149,10 @@ def sphere_add(x, y, z):
 def plane_add(x, y, z):
     plane = bpy.ops.mesh.primitive_plane_add(location = (x, y, z))
     return plane
+
+def cone_add(x, y, z):
+    cone = bpy.ops.mesh.primitive_cone_add(location = (x, y, z))
+    return cone
             
 # Fills the Tile array
 def fill_tile_array():
@@ -408,6 +419,8 @@ def create_building(x, y, row, col):
     if do_ground:
         create_footpath(x, y)
     
+    create_cars(x, y, row, col)
+    
     return
 
 def create_skyscraper(x, y, scale_xy, height):
@@ -445,6 +458,30 @@ def create_footpath(x, y):
     add_colour(whiteMaterial)
     
     return
+
+def create_cars(x, y, row, col):
+    cube = cube_add(x-1.3, y, 0.03)
+    select_object(cube)
+    resize_object(0.05, 0.1, 0.03)
+    add_colour(redMaterial)
+    
+    cube = cube_add(x-1.3, y, 0.075)
+    select_object(cube)
+    resize_object(0.05, 0.05, 0.015)
+    add_colour(whiteMaterial)
+    
+    cylinder = cylinder_add(0.02, 0.11, x-1.3, y+0.05, 0.02)
+    select_object(cylinder)
+    rotate_object(90, 'y')
+    add_colour(darkGrayMaterial)
+    
+    cylinder = cylinder_add(0.02, 0.11, x-1.3, y-0.05, 0.02)
+    select_object(cylinder)
+    rotate_object(90, 'y')
+    add_colour(darkGrayMaterial)
+    
+    return
+
 def create_park(x, y, row, col):
     
     # Create Park
@@ -465,157 +502,19 @@ def create_park(x, y, row, col):
         create_tree(x+randX, y+randY, treeThickness, treeHeight, treeTopZ)
         
     create_footpath(x, y)
+    create_cars(x, y, row, col)
     
     return
 
-def create_road_and_path(x, y, row, col):
-    
-    path_length_x = 1.2
-    move_x_1 = 0
-    move_x_2 = 0
-    slide_x = 0
-    
-    path_length_y = 1.2
-    move_y_1 = 0
-    move_y_2 = 0
-    slide_y = 0
-    
-    # If one of the edge tile
-    if row == 0 or row == len(TILES)-1:
-        path_length_x = 1
-    if row == 0:
-        move_x_1 = 0.4
-        slide_x = 0.2
-    elif row == len(TILES)-1:
-        move_x_2 = -0.4
-        slide_x = -0.2
-        
-    if col == 0 or col == len(TILES[0])-1:
-        path_length_y = 1
-    if col == 0:
-        move_y_1 = 0.4
-        slide_y = 0.2
-    elif col == len(TILES)-1:
-        move_y_2 = -0.4
-        slide_y = -0.2
-    
-    # If not an edge tile  
-    if row != 0 and col != 0 and row != len(TILES)-1 and col != len(TILES[0])-1:
-        if AlleyWay[row][col][0] != AlleyWay[row][col][1]:
-            if AlleyWay[row][col][0] == 1:
-                path_length_y += 0.1
-                move_y_2 += 0.2
-                slide_y += 0.1
-            elif AlleyWay[row][col][1] == 1:
-                path_length_y += 0.1
-                move_y_1 -= 0.2
-                slide_y -= 0.1
-        elif AlleyWay[row][col][0] == 1:
-            path_length_y += 0.2
-            move_y_1 -= 0.2
-            move_y_2 += 0.2
-        
-        if AlleyWay[row][col][2] != AlleyWay[row][col][3]:
-            if AlleyWay[row][col][2] == 1:
-                path_length_x += 0.1
-                move_x_1 -= 0.2
-                slide_x -= 0.1
-            elif AlleyWay[row][col][3] == 1:
-                path_length_x += 0.1
-                move_x_2 += 0.2
-                slide_x += 0.1
-        elif AlleyWay[row][col][2] == 1:
-            path_length_x += 0.2
-            move_x_1 -= 0.2
-            move_x_2 += 0.2
-           
-   # Roads/Ground 
-    ground = bpy.ops.mesh.primitive_plane_add(location = (x, y, 0))
-    select_object(ground)
-    bpy.ops.transform.resize(value = (1.5, 1.5, 1))
-    add_colour(darkGrayMaterial)
-    
-    # First Path
-    path = bpy.ops.mesh.primitive_plane_add(location = (x+1.1+move_x_2, y+slide_y, 0.01))
-    select_object(path)
-    bpy.ops.transform.resize(value = (0.1, path_length_y, 1))
-    add_colour(whiteMaterial)
-    
-    # Second Path
-    path = bpy.ops.mesh.primitive_plane_add(location = (x-1.1+move_x_1, y+slide_y, 0.01))
-    select_object(path)
-    bpy.ops.transform.resize(value = (0.1, path_length_y, 1))
-    add_colour(whiteMaterial)
-
-    # Third Path
-    path = bpy.ops.mesh.primitive_plane_add(location = (x+slide_x, y+1.1+move_y_2, 0.01))
-    select_object(path)
-    bpy.ops.transform.resize(value = (path_length_x, 0.1, 1))
-    add_colour(whiteMaterial)
-    
-    # Forth Path
-    path = bpy.ops.mesh.primitive_plane_add(location = (x+slide_x, y-1.1+move_y_1, 0.01))
-    select_object(path)
-    bpy.ops.transform.resize(value = (path_length_x, 0.1, 1))
-    add_colour(whiteMaterial)
-    
-    return
-
-# >>> START EXECUTION <<<
-
-# Clear The Screen
-bpy.ops.object.select_pattern()
-bpy.ops.object.delete()
-
-# Open file for logging
-if DOLOGGING:
-    SCRIPT_START_TIME = time.time() # Starting time of Script
-    LOG_FILE_PATH = bpy.path.abspath("//GenerateCity.log")
-    log_file = open(LOG_FILE_PATH, 'w+')
-
-# Start
-log("start logging")
-
-# Generate the City
-if DOCITY:
-    fill_tile_array()
-    render_tile_array()
-
-# Add a plane as the ground
-if DOGROUND:
-    log("Creating the ground...")
-
-    tile_range_x = 1.5*TILENUMBER_Y + 0.5
-    tile_range_y = 1.5*TILENUMBER_X + 0.5
-
-    ground = plane_add(0, 0, -0.001)
-    select_object(ground)
-    resize_object(tile_range_x, tile_range_y, 1)
-    add_colour(darkGrayMaterial)
-
-    log("Done.")
-
-# Add a plane as the sea level
-if DOOCEAN:
-    log("Creating the sea level...")
-
-    tile_range = 3 * max(TILENUMBER_X, TILENUMBER_Y)
-
-    water = plane_add(0, 0, -0.1)
-    select_object(water)
-    resize_object(tile_range, tile_range, 1)
-    add_colour(blueMaterial)
-
-    log("Done.")
-
-# Generate the City Borders
-if DOBORDER:
+def create_city_border():
     log("Create City Border...")
+    
     x = ((len(TILES)-1)/2) * 3 + 2
     y = ((len(TILES[0])-1)/2) * 3 + 2
     len_x = (TILENUMBER_X*3) + 1
     len_y = (TILENUMBER_Y*3) + 1
-            
+        
+    # Create the Beach Front    
     cylinder = cylinder_add(1, len_x, x, 0, -0.1)
     select_object(cylinder)
     resize_object(0.1, 1, 1)
@@ -643,30 +542,154 @@ if DOBORDER:
     select_object(sphere)
     resize_object(1, 1, 0.1)
     add_colour(sandMaterial)
+     
+    sphere = sphere_add(-x-1, y+0.5, -0.1)
+    select_object(sphere)
+    resize_object(2, 2, 0.1)
+    add_colour(sandMaterial)
     
-    plane = plane_add(-x-0.7, -1, 0.5)
-    select_object(plane)
-    resize_object(len_x/2+1, 1, 1)
-    rotate_object(90, 'z')
-    rotate_object(35, 'y')
-    add_colour(brownMaterial)
+    sphere = sphere_add(x+0.5, -y-1, -0.1)
+    select_object(sphere)
+    resize_object(2, 2, 0.1)
+    add_colour(sandMaterial)
     
-    plane = plane_add(-1, -y-0.7, 0.5)
-    select_object(plane)
-    resize_object(1, len_y/2+1, 1)
-    rotate_object(90, 'z')
-    rotate_object(-35, 'x')
-    add_colour(brownMaterial)
+    lower_case_x = min(3, len(TILES)-1)
+    beach_extra_x = random.randint(lower_case_x, len(TILES)-1)
+    for extra_x in range (beach_extra_x):
+        sphere = sphere_add(random.uniform(1, len_x-1)-x, y, -0.11)
+        select_object(sphere)
+        resize_object(random.uniform(2, 3), random.uniform(2, 3), 0.1)
+        add_colour(sandMaterial)
+        
+    lower_case_y = min(3, len(TILES[0])-1)
+    beach_extra_y = random.randint(lower_case_y, len(TILES[0])-1)
+    for extra_y in range (beach_extra_y):
+        sphere = sphere_add(x, random.uniform(1, len_y-1)-y, -0.11)
+        select_object(sphere)
+        resize_object(random.uniform(2, 3), random.uniform(2, 3), 0.1)
+        add_colour(sandMaterial)
+        
+    # Create the Forest Outskirts
+    cylinder = cylinder_add(1, len_x+1.8, -x-1, -1, 0)
+    select_object(cylinder)
+    rotate_object(90, 'x')
+    resize_object(1, 1, 0.1)
+    add_colour(rockMaterial)
     
-    plane = plane_add(-x-0.5, -y-0.5, 0.5)
-    select_object(plane)
-    resize_object(1, 1, 1)
-    add_colour(brownMaterial)
-    rotate_object(-35, 'x')
-    rotate_object(-45, 'z')
+    cylinder = cylinder_add(1, len_y+1.8, -1, -y-1, 0)
+    select_object(cylinder)
+    rotate_object(90, 'y')
+    resize_object(1, 1, 0.1)
+    add_colour(rockMaterial)
     
+    cone = cone_add(-x-1, y, 0.5)
+    select_object(cone)
+    resize_object(1, 1.5, 0.5)
+    add_colour(rockMaterial)
+
+    cone = cone_add(x, -y-1, 0.5)
+    select_object(cone)
+    resize_object(1.5, 1, 0.5)
+    add_colour(rockMaterial)
+    
+    cone = cone_add(-x-5, -y-5, 3)
+    select_object(cone)
+    resize_object(5, 5, 3)
+    add_colour(rockMaterial)
+    
+    mountain_x_len = ((len(TILES)-1)*3)+3
+    for mountain_x in range (mountain_x_len):
+        rand_height = random.uniform(1, 3)
+        rand_width = random.uniform(5, 6)
+        cone = cone_add(-x+mountain_x, -y-rand_width, rand_height)
+        select_object(cone)
+        resize_object(rand_width, rand_width, rand_height)
+        add_colour(rockMaterial)
+        
+        numTree = random.randint(1, 3)
+        for tree in range (numTree):
+            randX = random.uniform(-0.5, 0.5)
+            randY = random.uniform(-0.6, -0.2)
+            treeThickness = random.uniform(0.05, 0.1)
+            treeHeight = random.uniform(0.2, 0.4)
+            treeTopZ = random.uniform(0.1, 0.3)
+        
+            create_tree(-x+mountain_x+randX, -y+randY, treeThickness, treeHeight, treeTopZ)
+            
+    
+    mountain_y_len = ((len(TILES[0])-1)*3)+3
+    for mountain_y in range (mountain_y_len):
+        rand_height = random.uniform(1, 3)
+        rand_width = random.uniform(5, 6)
+        cone = cone_add(-x-rand_width, -y+mountain_y, rand_height)
+        select_object(cone)
+        resize_object(rand_width, rand_width, rand_height)
+        add_colour(rockMaterial)
+        
+        numTree = random.randint(1, 3)
+        for tree in range (numTree):
+            randX = random.uniform(-0.6, -0.2)
+            randY = random.uniform(-0.5, 0.5)
+            treeThickness = random.uniform(0.05, 0.1)
+            treeHeight = random.uniform(0.2, 0.4)
+            treeTopZ = random.uniform(0.1, 0.3)
+        
+            create_tree(-x+randX, -y+mountain_y+randY, treeThickness, treeHeight, treeTopZ)
+        
     log("Done")
-    
+    return
+
+# >>> START EXECUTION <<<
+
+# Clear The Screen
+bpy.ops.object.select_pattern()
+bpy.ops.object.delete()
+
+# Open file for logging
+if DOLOGGING:
+    SCRIPT_START_TIME = time.time() # Starting time of Script
+    log_file_path = bpy.path.abspath("//GenerateCity.log")
+    log_file = open(log_file_path, 'w+')
+
+# Start
+log("start logging")
+
+# Generate the City
+if DOCITY:
+    fill_tile_array()
+    render_tile_array()
+
+# Add a plane as the ground
+if DOGROUND:
+    log("Creating the ground...")
+
+    tile_range_x = 1.5*TILENUMBER_Y + 0.5
+    tile_range_y = 1.5*TILENUMBER_X + 0.5
+
+    ground = plane_add(0, 0, -0.001)
+    select_object(ground)
+    resize_object(tile_range_x, tile_range_y, 1)
+    add_colour(darkGrayMaterial)
+
+    log("Done.")
+
+# Add a plane as the sea level
+if DOOCEAN:
+    log("Creating the sea level...")
+
+    tile_range = 5 * max(TILENUMBER_X, TILENUMBER_Y)
+
+    water = plane_add(0, 0, -0.05)
+    select_object(water)
+    resize_object(tile_range, tile_range, 1)
+    add_colour(blueMaterial)
+
+    log("Done.")
+
+# Generate the City Borders
+if DOBORDER:
+    create_city_border()
+
 log("Tiles Rows: %d" %len(TILES))
 log("Tiles Cols: %d" %len(TILES[0]))
 
