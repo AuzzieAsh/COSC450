@@ -10,8 +10,8 @@ import time
 
 
 DO_LOGGING = True # Change if logging should be on or off
-TILENUMBER_X = 5 # Number of tiles for x (cols) 
-TILENUMBER_Y = 5 # Number of tiles for y (rows)
+TILENUMBER_X = 2 # Number of tiles for x (cols) 
+TILENUMBER_Y = 2 # Number of tiles for y (rows)
 CHANCE_OF_BUILDING = 0.9 # Chance for more/less buildings (Values between 0 and 1 only, Default = 0.9)
 CHANCE_OF_CUBE_BUILDING = 0.9 # Chance for more/less cube shaped buildings (Values betweem 0 and 1 only, Default = 0.9)
 CHANCE_OF_CUBE_SKYSCRAPER = 0.9 # Chance for more/less cube shaped skyscrapers (Values between 0 and 1 only, Default = 0.9)
@@ -24,7 +24,7 @@ DO_PARKS = True # Change if Parks should be generated
 DO_GROUND = True # Change if the Ground should be generated
 DO_OCEAN = True # Change if the Ocean should be generated
 DO_BORDER = True # Change if the city border should be generated
-DO_CARS = True # Change if cars should be generated
+DO_CARS = False # Change if cars should be generated
 DO_SKYBOX = True # Change if the skybox should be generated
 
 # Constants for Tiles Array
@@ -914,6 +914,7 @@ if DO_BORDER:
     create_city_border()
 
 tile_range = 10 * max(TILENUMBER_X, TILENUMBER_Y)
+
 if DO_SKYBOX:
     log("Creating the skybox...")
 
@@ -930,20 +931,60 @@ if DO_SKYBOX:
     add_colour(lightBlueMaterial)
     rotate_object(90, 'x')
     
-sun = bpy.ops.object.lamp_add(type='SUN', location=(tile_range, tile_range, tile_range))
     
 # Add a plane as the sea level
 if DO_OCEAN:
     log("Creating the sea level...")
-
-    tile_range = 10 * max(TILENUMBER_X, TILENUMBER_Y)
 
     water = plane_add(0, 0, -0.05)
     select_object(water)
     resize_object(tile_range, tile_range, 1)
     add_colour(blueMaterial)
 
+camera1 = bpy.ops.object.camera_add(location=(tile_range/2, tile_range/2, tile_range/2))
+select_object(camera1)
+rotate_object(90, 'y')
+rotate_object(90, 'x')
+rotate_object(45, 'z')
+rotate_object(25, 'x')
+rotate_object(-25, 'y')
+rotate_object(-7, 'z')
 
+camera2 = bpy.ops.object.camera_add(location=(0, 0, tile_range))
+
+camera_y = 0
+if TILENUMBER_X % 2 != 0:
+    camera_y = 1.5
+    
+camera3 = bpy.ops.object.camera_add(location=(TILENUMBER_X*2+5, camera_y, 1))
+select_object(camera3)
+rotate_object(180, 'z')
+rotate_object(90, 'y')
+rotate_object(-90, 'x')
+
+camera_x = 0
+if TILENUMBER_Y % 2 != 0:
+    camera_x = 1.5
+    
+camera4 = bpy.ops.object.camera_add(location=(camera_x, TILENUMBER_Y*2+5, 1))
+select_object(camera4)
+rotate_object(180, 'z')
+rotate_object(-90, 'x')
+
+sun = bpy.ops.object.lamp_add(type='SUN', location=(tile_range, tile_range, tile_range))
+
+scene = bpy.context.scene
+n = 1
+
+for ob in scene.objects:
+    if ob.type == 'CAMERA':
+        bpy.context.scene.camera = ob
+        print('Set camera %s' % ob.name )
+        file = bpy.path.abspath("//render%d.png" %n)
+        n += 1
+        bpy.context.scene.render.filepath = file
+        bpy.ops.render.render( write_still=True )
+        
 log("Tiles Rows: %d" %len(TILES))
 log("Tiles Cols: %d" %len(TILES[0]))
 
