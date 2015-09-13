@@ -1,0 +1,193 @@
+[0:0:0.0] start logging
+[0:0:0.0] fill_tile_array called...
+[0:0:0.0] [0,0] = BUILDING
+[0:0:0.0] [0,1] = BUILDING
+[0:0:0.0] [0,2] = BUILDING
+[0:0:0.0] [0,3] = BUILDING
+[0:0:0.0] [0,4] = BUILDING
+[0:0:0.0] [1,0] = PARK
+[0:0:0.0] [1,1] = BUILDING
+[0:0:0.0] [1,2] = BUILDING
+[0:0:0.0] [1,3] = BUILDING
+[0:0:0.0] [1,4] = BUILDING
+[0:0:0.0] [2,0] = BUILDING
+[0:0:0.0] [2,1] = BUILDING
+[0:0:0.0] [2,2] = BUILDING
+[0:0:0.0] [2,3] = PARK
+[0:0:0.0] [2,4] = BUILDING
+[0:0:0.0] [3,0] = BUILDING
+[0:0:0.0] [3,1] = BUILDING
+[0:0:0.0] [3,2] = BUILDING
+[0:0:0.0] [3,3] = BUILDING
+[0:0:0.0] [3,4] = BUILDING
+[0:0:0.0] [4,0] = BUILDING
+[0:0:0.0] [4,1] = BUILDING
+[0:0:0.0] [4,2] = BUILDING
+[0:0:0.0] [4,3] = BUILDING
+[0:0:0.0] [4,4] = BUILDING
+[0:0:0.0] render_tile_array called...
+[0:0:0.3] [0,0] BUILDING Created
+[0:0:0.3] Generating 6 cars at [-7,-6]
+[0:0:0.7] Generating 2 cars at [-6,-7]
+[0:0:0.8] Generating 6 cars at [-7,-6]
+[0:0:1.2] Generating 5 cars at [-6,-7]
+[0:0:1.6] Generating 3 cars at [-4,-6]
+[0:0:1.8] Generating 1 cars at [-6,-4]
+[0:0:2.0] [0,1] BUILDING Created
+[0:0:2.0] Generating 7 cars at [-7,-3]
+[0:0:2.5] Generating 5 cars at [-7,-3]
+[0:0:2.9] Generating 1 cars at [-6,-4]
+[0:0:3.0] Generating 4 cars at [-4,-3]
+[0:0:3.3] Generating 0 cars at [-6,-1]
+[0:0:3.7] [0,2] BUILDING Created
+[0:0:3.7] Generating 1 cars at [-7,0]
+[0:0:3.8] Generating 7 cars at [-7,0]
+[0:0:4.4] Generating 7 cars at [-6,-1]
+[0:0:4.9] Generating 0 cars at [-4,0]
+[0:0:4.9] Generating 2 cars at [-6,1]
+[0:0:5.2] [0,3] BUILDING Created
+[0:0:5.2] Generating 0 cars at [-7,3]
+[0:0:5.2] Generating 0 cars at [-7,3]
+[0:0:5.2] Generating 4 cars at [-6,1]
+[0:0:5.6] Generating 7 cars at [-4,3]
+[0:0:6.2] Generating 4 cars at [-6,4]
+[0:0:6.9] [0,4] BUILDING Created
+[0:0:6.9] Generating 0 cars at [-7,6]
+[0:0:6.9] Generating 6 cars at [-6,7]
+[0:0:7.4] Generating 7 cars at [-7,6]
+[0:0:8.2] Generating 6 cars at [-6,4]
+[0:0:8.8] Generating 5 cars at [-4,6]
+[0:0:9.4] Generating 0 cars at [-6,7]
+[0:0:9.8] [1,0] PARK Created
+[0:0:9.8] Generating 7 cars at [-3,-7]
+[0:0:10.6] Generating 0 cars at [-4,-6]
+[0:0:10.6] Generating 5 cars at [-3,-7]
+[0:0:11.3] Generating 6 cars at [-1,-6]
+[0:0:12.1] Generating 7 cars at [-3,-4]
+[0:0:13.1] Generating 6 cars at [-3,-3]
+[0:0:13.9] Generating 7 cars at [-2,-3]
+[0:0:15.2] [1,1] BUILDING Created
+[0:0:15.2] Generating 7 cars at [-4,-3]
+[0:0:16.2] Generating 0 cars at [-3,-4]
+[0:0:16.2] Generating 1 cars at [-1,-3]
+[0:0:16.3] Generating 1 cars at [-3,-1]
+[0:0:16.7] [1,2] BUILDING Created
+[0:0:16.7] Generating 0 cars at [-4,0]
+[0:0:16.7] Generating 4 cars at [-3,-1]
+[0:0:17.3] Generating 2 cars at [-1,0]
+[0:0:17.6] Generating 6 cars at [-3,1]
+[0:0:19.1] [1,3] BUILDING Created
+[0:0:19.1] Generating 7 cars at [-4,3]
+[0:0:20.3] Generating 4 cars at [-3,1]
+[0:0:21.0] Generating 0 cars at [-1,3]
+[0:0:21.0] Generating 1 cars at [-3,4]
+[0:0:21.4] [1,4] BUILDING Created
+[0:0:21.4] Generating 2 cars at [-3,7]
+[0:0:21.8] Generating 2 cars at [-4,6]
+[0:0:22.1] Generating 5 cars at [-3,4]
+[0:0:23.0] Generating 4 cars at [-1,6]
+[0:0:23.8] Generating 4 cars at [-3,7]
+[0:0:25.5] [2,0] BUILDING Created
+[0:0:25.5] Generating 5 cars at [0,-7]
+[0:0:26.6] Generating 1 cars at [-1,-6]
+[0:0:26.8] Generating 1 cars at [0,-7]
+[0:0:27.0] Generating 0 cars at [1,-6]
+[0:0:27.0] Generating 6 cars at [0,-4]
+[0:0:28.8] [2,1] BUILDING Created
+[0:0:28.8] Generating 1 cars at [-1,-3]
+[0:0:29.0] Generating 4 cars at [0,-4]
+[0:0:29.9] Generating 0 cars at [1,-3]
+[0:0:29.9] Generating 0 cars at [0,-1]
+[0:0:29.9] Generating 3 cars at [0,0]
+[0:0:30.6] Generating 5 cars at [0,0]
+[0:0:32.1] [2,2] BUILDING Created
+[0:0:32.1] Generating 4 cars at [-1,0]
+[0:0:33.1] Generating 6 cars at [0,-1]
+[0:0:34.5] Generating 6 cars at [1,0]
+[0:0:36.0] Generating 5 cars at [0,1]
+[0:0:38.2] [2,3] PARK Created
+[0:0:38.2] Generating 0 cars at [-1,3]
+[0:0:38.2] Generating 6 cars at [0,1]
+[0:0:39.8] Generating 6 cars at [1,3]
+[0:0:41.4] Generating 2 cars at [0,4]
+[0:0:43.0] [2,4] BUILDING Created
+[0:0:43.0] Generating 3 cars at [0,7]
+[0:0:43.9] Generating 4 cars at [-1,6]
+[0:0:45.1] Generating 1 cars at [0,4]
+[0:0:45.4] Generating 0 cars at [1,6]
+[0:0:45.4] Generating 6 cars at [0,7]
+[0:0:48.3] [3,0] BUILDING Created
+[0:0:48.3] Generating 2 cars at [3,-7]
+[0:0:48.9] Generating 1 cars at [1,-6]
+[0:0:49.3] Generating 5 cars at [3,-7]
+[0:0:50.8] Generating 3 cars at [4,-6]
+[0:0:51.8] Generating 4 cars at [3,-4]
+[0:0:54.7] [3,1] BUILDING Created
+[0:0:54.7] Generating 3 cars at [1,-3]
+[0:0:55.7] Generating 3 cars at [3,-4]
+[0:0:56.7] Generating 2 cars at [4,-3]
+[0:0:57.4] Generating 1 cars at [3,-1]
+[0:0:58.1] [3,2] BUILDING Created
+[0:0:58.1] Generating 5 cars at [1,0]
+[0:0:59.9] Generating 4 cars at [3,-1]
+[0:1:1.4] Generating 1 cars at [4,0]
+[0:1:1.7] Generating 6 cars at [3,1]
+[0:1:3.9] Generating 5 cars at [3,3]
+[0:1:5.8] Generating 3 cars at [3,2]
+[0:1:7.7] [3,3] BUILDING Created
+[0:1:7.7] Generating 3 cars at [1,3]
+[0:1:8.9] Generating 6 cars at [3,1]
+[0:1:11.3] Generating 6 cars at [4,3]
+[0:1:13.7] Generating 3 cars at [3,4]
+[0:1:16.2] [3,4] BUILDING Created
+[0:1:16.2] Generating 7 cars at [3,7]
+[0:1:19.2] Generating 7 cars at [1,6]
+[0:1:22.2] Generating 0 cars at [3,4]
+[0:1:22.2] Generating 3 cars at [4,6]
+[0:1:23.6] Generating 0 cars at [3,7]
+[0:1:24.1] [4,0] BUILDING Created
+[0:1:24.1] Generating 5 cars at [6,-7]
+[0:1:26.4] Generating 7 cars at [7,-6]
+[0:1:29.6] Generating 0 cars at [4,-6]
+[0:1:29.6] Generating 4 cars at [6,-7]
+[0:1:31.5] Generating 6 cars at [7,-6]
+[0:1:34.4] Generating 0 cars at [6,-4]
+[0:1:35.6] [4,1] BUILDING Created
+[0:1:35.6] Generating 1 cars at [7,-3]
+[0:1:36.1] Generating 6 cars at [4,-3]
+[0:1:39.1] Generating 0 cars at [6,-4]
+[0:1:39.1] Generating 4 cars at [7,-3]
+[0:1:41.1] Generating 6 cars at [6,-1]
+[0:1:46.1] [4,2] BUILDING Created
+[0:1:46.1] Generating 6 cars at [7,0]
+[0:1:49.3] Generating 7 cars at [4,0]
+[0:1:53.0] Generating 0 cars at [6,-1]
+[0:1:53.0] Generating 3 cars at [7,0]
+[0:1:54.6] Generating 4 cars at [6,1]
+[0:1:57.5] [4,3] BUILDING Created
+[0:1:57.5] Generating 2 cars at [7,3]
+[0:1:58.6] Generating 2 cars at [4,3]
+[0:1:59.7] Generating 5 cars at [6,1]
+[0:2:2.3] Generating 5 cars at [7,3]
+[0:2:4.9] Generating 6 cars at [6,4]
+[0:2:11.0] [4,4] BUILDING Created
+[0:2:11.0] Generating 4 cars at [7,6]
+[0:2:13.2] Generating 1 cars at [6,7]
+[0:2:13.7] Generating 5 cars at [4,6]
+[0:2:16.6] Generating 2 cars at [6,4]
+[0:2:17.8] Generating 4 cars at [7,6]
+[0:2:20.1] Generating 6 cars at [6,7]
+[0:2:23.7] Creating the ground...
+[0:2:23.8] create_city_border called...
+[0:2:23.8] Creating the beach front...
+[0:2:24.8] Beach random variation
+[0:2:25.6] Creating the mountain outskirts...
+[0:2:26.3] Mountain random variation in X
+[0:2:40.9] Mountain random variation in Y
+[0:2:57.9] Creating the skybox...
+[0:2:58.2] Creating the sea level...
+[0:2:58.4] Setting up the cameras...
+[0:2:59.1] Taking pictures of the city...
+[0:3:2.2] Tiles Rows: 5
+[0:3:2.2] Tiles Cols: 5
+[0:3:2.2] end logging

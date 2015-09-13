@@ -10,8 +10,8 @@ import time
 
 
 DO_LOGGING = True # Change if logging should be on or off
-TILENUMBER_X = 10 # Number of tiles for x (cols) 
-TILENUMBER_Y = 10 # Number of tiles for y (rows)
+TILENUMBER_X = 8 # Number of tiles for x (cols) 
+TILENUMBER_Y = 8 # Number of tiles for y (rows)
 CHANCE_OF_BUILDING = 0.9 # Chance for more/less buildings (Values between 0 and 1 only, Default = 0.9)
 CHANCE_OF_CUBE_BUILDING = 0.9 # Chance for more/less cube shaped buildings (Values betweem 0 and 1 only, Default = 0.9)
 CHANCE_OF_CUBE_SKYSCRAPER = 0.9 # Chance for more/less cube shaped skyscrapers (Values between 0 and 1 only, Default = 0.9)
@@ -917,7 +917,6 @@ tile_range = 10 * max(TILENUMBER_X, TILENUMBER_Y)
 
 if DO_SKYBOX:
     log("Creating the skybox...")
-
 
     sky = plane_add(-tile_range, 0, tile_range)
     select_object(sky)
