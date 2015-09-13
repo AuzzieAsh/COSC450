@@ -10,8 +10,8 @@ import time
 
 
 DO_LOGGING = True # Change if logging should be on or off
-TILENUMBER_X = 2 # Number of tiles for x (cols) 
-TILENUMBER_Y = 2 # Number of tiles for y (rows)
+TILENUMBER_X = 10 # Number of tiles for x (cols) 
+TILENUMBER_Y = 10 # Number of tiles for y (rows)
 CHANCE_OF_BUILDING = 0.9 # Chance for more/less buildings (Values between 0 and 1 only, Default = 0.9)
 CHANCE_OF_CUBE_BUILDING = 0.9 # Chance for more/less cube shaped buildings (Values betweem 0 and 1 only, Default = 0.9)
 CHANCE_OF_CUBE_SKYSCRAPER = 0.9 # Chance for more/less cube shaped skyscrapers (Values between 0 and 1 only, Default = 0.9)
@@ -24,7 +24,7 @@ DO_PARKS = True # Change if Parks should be generated
 DO_GROUND = True # Change if the Ground should be generated
 DO_OCEAN = True # Change if the Ocean should be generated
 DO_BORDER = True # Change if the city border should be generated
-DO_CARS = False # Change if cars should be generated
+DO_CARS = True # Change if cars should be generated
 DO_SKYBOX = True # Change if the skybox should be generated
 
 # Constants for Tiles Array
@@ -941,6 +941,7 @@ if DO_OCEAN:
     resize_object(tile_range, tile_range, 1)
     add_colour(blueMaterial)
 
+log("Setting up the cameras...")
 camera1 = bpy.ops.object.camera_add(location=(tile_range/2, tile_range/2, tile_range/2))
 select_object(camera1)
 rotate_object(90, 'y')
@@ -974,12 +975,12 @@ rotate_object(-90, 'x')
 sun = bpy.ops.object.lamp_add(type='SUN', location=(tile_range, tile_range, tile_range))
 
 scene = bpy.context.scene
-n = 1
+n = 0
 
+log("Taking pictures of the city...")
 for ob in scene.objects:
     if ob.type == 'CAMERA':
         bpy.context.scene.camera = ob
-        print('Set camera %s' % ob.name )
         file = bpy.path.abspath("//render%d.png" %n)
         n += 1
         bpy.context.scene.render.filepath = file
