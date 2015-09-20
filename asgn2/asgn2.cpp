@@ -109,7 +109,7 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
                     for_y {
                         int x_res = cent.x - x;
                         int y_res = cent.y - y;
-                        double distance = x_res*x_res + y_res*y;
+                        double distance = std::abs(x_res*x_res + y_res*y);
                         cluster_distance.push_back(distance);
                         count += distance;
                     }
@@ -120,9 +120,9 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
                 while (cluster_centres.size() == c) {
                     rand_x = rand() % image.size().width;
                     rand_y = rand() % image.size().height;
-                    double prob = pow(std::abs(cluster_distance[rand_x*rand_y]),2)/count;
+                    double prob = pow(cluster_distance[rand_x*rand_y],2)/count;
                     double chance = rand()/(RAND_MAX+1.0);
-                    printf("%g, %g\n", prob, chance);
+                    std::cout << "Prob: " << prob << ", Chance: " << chance << "\n";
                     if (prob > chance) {
                         cent.x = rand_x;
                         cent.y = rand_y;
@@ -132,6 +132,10 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
                 }
             }
 
+            for_c {
+                std::cout << "Cluster " << c << " RGB: " << result.clusters[c] << "\n";
+            }
+            
             // 5. Continue
             break;
 
