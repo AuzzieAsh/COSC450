@@ -5,7 +5,7 @@ OCVDIR = /home/cshome/s/steven/Public/OpenCV/
 
 INCLUDE_FLAGS=-I$(OCVDIR)/include
 
-CFLAGS = -c -std=c++11 -Wall -Wpedantic -Werror $(INCLUDE_FLAGS)
+CFLAGS = -c -std=c++11 -Wall -Wpedantic $(INCLUDE_FLAGS)
 LDFLAGS = -L$(OCVDIR)/lib -lopencv_core -lopencv_highgui -lopencv_imgproc
 
 SOURCES = asgn2.cpp
