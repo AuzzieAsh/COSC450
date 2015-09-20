@@ -11,9 +11,19 @@
 #include <random> // rngesus
 #include <climits> // infinity
 
+// I use these a lot
+#define for_x for (int x = 0; x < image.size().width; x++)
+#define for_y for (int y = 0; y < image.size().height; y++)
+#define for_c for (int c = 0; c < k; c++)
+
 struct SegmentationResult {
     std::vector<cv::Vec3b> clusters; // cluster points
     cv::Mat labels; // cluster labels
+};
+
+struct Point {
+    int x;
+    int y;
 };
 
 /*
@@ -21,7 +31,6 @@ struct SegmentationResult {
  */
 SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_type) {
 
-    std::vector<unsigned char> cluster_assign;
 
     // Set up the SegmentationResult
     SegmentationResult result;
@@ -29,13 +38,19 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
     result.labels.setTo(0);
     result.clusters.resize(0); // Ensure it's empty
 
+    // Cluster Variables
+    int rand_x, rand_y;
+    std::vector<unsigned char> cluster_assign; // case 1
+    std::vector<double> cluster_distance; // case 2
+    std::vector<Point> cluster_centres; // case 2
+
     // Add k cluster points to result.centres
     switch (c_type) {
 
         case 0: // Random Selection
-            for (int c = 0; c < k; c++) {
-                int rand_x = rand() % image.size().width;
-                int rand_y = rand() % image.size().height;
+            for_c {
+                rand_x = rand() % image.size().width;
+                rand_y = rand() % image.size().height;
                 result.clusters.push_back(image.at<cv::Vec3b>(rand_y, rand_x));
 
                 std::cout << "Cluster " << c << ": [" << rand_x << "," << rand_y << "]";
@@ -50,13 +65,12 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
             }
 
             // Go through and get the average for each k cluster
-            for (int c = 0; c < k; c++) {
-
+            for_c {
                 double r = 0, g = 0, b = 0;
                 int count = 0;
 
-                for (int x = 0; x < image.size().width; x++) {
-                    for (int y = 0; y < image.size().height; y++) {
+                for_x {
+                    for_y {
 
                         if (c == cluster_assign[y*x]) {
                             r += image.at<cv::Vec3b>(y,x)[0];
@@ -73,17 +87,54 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
                 std::cout << "Cluster " << c << " RGB: " << result.clusters[c] << "\n";
             }
             break;
-/*
-        case 2: // k-Means++
-            int rand_x = rand() % image.size().width;
-            int rand_y = rand() % image.size().height;
+
+        case 2: // k-Means++ (I think)
+
+            // 1. Choose one centre uniformly at random from the data points
+            rand_x = rand() % image.size().width;
+            rand_y = rand() % image.size().height;
             result.clusters.push_back(image.at<cv::Vec3b>(rand_y, rand_x));
+            Point cent; cent.x = rand_x; cent.y = rand_y;
+            cluster_centres.push_back(cent);
 
+            // 4. Repeat steps 2 and 3 until all k centres are selected
             for (int c = 1; c < k; c++) {
+                // 2. For each data point p compute D(p)
+                // the distance between p and the nearest centre chosen
+                cluster_distance.resize(0);
+                cent = cluster_centres[c-1];
+                double count = 0;
 
+                for_x {
+                    for_y {
+                        int x_res = cent.x - x;
+                        int y_res = cent.y - y;
+                        double distance = x_res*x_res + y_res*y;
+                        cluster_distance.push_back(distance);
+                        count += distance;
+                    }
+                }
+
+                // 3. Choose one new point at random, using weighted probability
+                // which has weighted probability proportional to D(p)^2
+                while (cluster_centres.size() == c) {
+                    rand_x = rand() % image.size().width;
+                    rand_y = rand() % image.size().height;
+                    double prob = pow(std::abs(cluster_distance[rand_x*rand_y]),2)/count;
+                    double chance = rand()/(RAND_MAX+1.0);
+                    printf("%g, %g\n", prob, chance);
+                    if (prob > chance) {
+                        cent.x = rand_x;
+                        cent.y = rand_y;
+                        cluster_centres.push_back(cent);
+                        result.clusters.push_back(image.at<cv::Vec3b>(rand_y, rand_x));
+                    }
+                }
             }
+
+            // 5. Continue
             break;
-*/
+
         default:
             std::cout << "c_type too dank\n";
             exit(1);
@@ -94,12 +145,12 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
 
     while (!done) {
 
-        for (int x = 0; x < image.size().width; x++) {
-            for (int y = 0; y < image.size().height; y++) {
+        for_x {
+            for_y {
 
                 double min_distance = std::numeric_limits<double>::max();
 
-                for (int c = 0; c < k; c++) {
+                for_c {
 
                     double r = image.at<cv::Vec3b>(y,x)[0] - result.clusters[c][0];
                     double g = image.at<cv::Vec3b>(y,x)[1] - result.clusters[c][1];
@@ -115,13 +166,13 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
             }
         }
 
-        for (int c = 0; c < k; c++) {
+        for_c {
 
             double r = 0, g = 0, b = 0;
             int count = 0;
 
-            for (int x = 0; x < image.size().width; x++) {
-                for (int y = 0; y < image.size().height; y++) {
+            for_x {
+                for_y {
 
                     if (result.labels.at<unsigned char>(y,x) == c) {
                         r += image.at<cv::Vec3b>(y,x)[0];
@@ -165,9 +216,9 @@ int main (int argc, char **argv) {
     SegmentationResult result = kMeans(image, k, c_type);
 
     // Loop over the image
-    for (int c = 0; c < k; c++) {
-        for (int x = 0; x < image.size().width; x++) {
-            for (int y = 0; y < image.size().height; y++) {
+    for_c {
+        for_x {
+            for_y {
                 if (result.labels.at<unsigned char>(y,x) == c) {
                     // Set each pixel value to the corresponding centre/cluster
                     image.at<cv::Vec3b>(y,x) = result.clusters[c];
