@@ -26,11 +26,24 @@ struct Point {
     int y;
 };
 
+double compute_distance(cv::Vec3b point, cv::Vec3b centre, int d_type) {
+    switch (d_type) {
+        case 0: // RGB
+            return sqrt(pow(point[0] - centre[0], 2) +
+                        pow(point[1] - centre[1], 2) +
+                        pow(point[2] - centre[2], 2));
+        case 1: // HSV
+            return sqrt(pow(point[0] - centre[0], 2) +
+                        pow(point[1] - centre[1], 2));
+        default:
+            return std::numeric_limits<double>::max();
+    }
+}
+
 /*
  k-Means algorithm - Does k-Means stuff
  */
-SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_type) {
-
+SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, int max_iterations) {
 
     // Set up the SegmentationResult
     SegmentationResult result;
@@ -41,10 +54,9 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
     // Cluster Variables
     int rand_x, rand_y;
     std::vector<unsigned char> cluster_assign; // case 1
-    std::vector<double> cluster_distance; // case 2
-    std::vector<Point> cluster_centres; // case 2
+    std::vector<double> cluster_distances; // case 2
 
-    // Add k cluster points to result.centres
+    // Add k cluster points to result.clusters
     switch (c_type) {
 
         case 0: // Random Selection
@@ -52,13 +64,13 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
                 rand_x = rand() % image.size().width;
                 rand_y = rand() % image.size().height;
                 result.clusters.push_back(image.at<cv::Vec3b>(rand_y, rand_x));
-
-                std::cout << "Cluster " << c << ": [" << rand_x << "," << rand_y << "]";
-                std::cout << " RGB: " << result.clusters[c] << "\n";
             }
             break;
 
-        case 1: // Random Clustering (I think)
+        case 1: // Random Clustering
+            if (d_type == 1) {
+               // cv::cvtColor(image, image, CV_HSV2BGR);
+            }
             // Assign each data element to one k cluster
             for (int l = 0; l < image.size().width*image.size().height; l++) {
                 cluster_assign.push_back(rand() % k);
@@ -71,7 +83,6 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
 
                 for_x {
                     for_y {
-
                         if (c == cluster_assign[y*x]) {
                             r += image.at<cv::Vec3b>(y,x)[0];
                             g += image.at<cv::Vec3b>(y,x)[1];
@@ -83,9 +94,11 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
 
                 cv::Vec3b average(r/count, g/count, b/count);
                 result.clusters.push_back(average);
-
-                std::cout << "Cluster " << c << " RGB: " << result.clusters[c] << "\n";
             }
+            /*if (d_type == 1) {
+                cv::cvtColor(image, image, CV_BGR2HSV);
+                cv::cvtColor(result.clusters, result.clusters, CV_BGR2HSV);
+            }*/
             break;
 
         case 2: // k-Means++ (I think)
@@ -94,54 +107,53 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
             rand_x = rand() % image.size().width;
             rand_y = rand() % image.size().height;
             result.clusters.push_back(image.at<cv::Vec3b>(rand_y, rand_x));
-            Point cent; cent.x = rand_x; cent.y = rand_y;
-            cluster_centres.push_back(cent);
 
             // 4. Repeat steps 2 and 3 until all k centres are selected
             for (int c = 1; c < k; c++) {
                 // 2. For each data point p compute D(p)
                 // the distance between p and the nearest centre chosen
-                cluster_distance.resize(0);
-                cent = cluster_centres[c-1];
+                cluster_distances.resize(0); // Empty It
+                cv::Vec3b centre = result.clusters[c-1]; // Select Last Centre Found
                 double count = 0;
 
                 for_x {
                     for_y {
-                        int x_res = cent.x - x;
-                        int y_res = cent.y - y;
-                        double distance = std::abs(x_res*x_res + y_res*y);
-                        cluster_distance.push_back(distance);
+                        double distance = std::abs(compute_distance(image.at<cv::Vec3b>(y,x), centre, d_type));
+
+                        cluster_distances.push_back(distance);
                         count += distance;
                     }
                 }
 
                 // 3. Choose one new point at random, using weighted probability
                 // which has weighted probability proportional to D(p)^2
-                while (cluster_centres.size() == c) {
+                while (result.clusters.size() == c) {
+
                     rand_x = rand() % image.size().width;
                     rand_y = rand() % image.size().height;
-                    double prob = pow(cluster_distance[rand_x*rand_y],2)/count;
+
+                    double prob = pow(cluster_distances[rand_x*rand_y],2)/count;
                     double chance = rand()/(RAND_MAX+1.0);
-                    std::cout << "Prob: " << prob << ", Chance: " << chance << "\n";
+
+                    std::cout << "Prob: " << prob << ", Chance: " << chance;
                     if (prob > chance) {
-                        cent.x = rand_x;
-                        cent.y = rand_y;
-                        cluster_centres.push_back(cent);
                         result.clusters.push_back(image.at<cv::Vec3b>(rand_y, rand_x));
+                        std::cout << " | Sucessful k " << c;
                     }
+                    std::cout << "\n";
                 }
             }
 
-            for_c {
-                std::cout << "Cluster " << c << " RGB: " << result.clusters[c] << "\n";
-            }
-            
-            // 5. Continue
+            // 5. Continue with k-means clustering
             break;
 
         default:
-            std::cout << "c_type too dank\n";
+            std::cout << "c_type too dank, try again\n";
             exit(1);
+    }
+
+    for_c {
+        std::cout << "Cluster " << c << ": Colour " << result.clusters[c] << "\n";
     }
 
     int iterations = 0;
@@ -152,15 +164,13 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
         for_x {
             for_y {
 
+                // Infinity
                 double min_distance = std::numeric_limits<double>::max();
 
                 for_c {
-
-                    double r = image.at<cv::Vec3b>(y,x)[0] - result.clusters[c][0];
-                    double g = image.at<cv::Vec3b>(y,x)[1] - result.clusters[c][1];
-                    double b = image.at<cv::Vec3b>(y,x)[2] - result.clusters[c][2];
-
-                    double distance = sqrt(pow(r,2) + pow(g,2) + pow(b,2));
+                    double distance;
+                    // Calculate the Distance
+                    distance = compute_distance(image.at<cv::Vec3b>(y,x), result.clusters[c], d_type);
 
                     if (distance < min_distance) {
                         result.labels.at<unsigned char>(y,x) = c;
@@ -190,8 +200,8 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
             result.clusters[c] = cv::Vec3b(r/count, g/count, b/count);
         }
 
-        std::cout << "Iterations: " << iterations++ << "\n";
-        if (iterations >= 10)
+        std::cout << "Iteration: " << iterations++ << "\n";
+        if (iterations >= max_iterations) // TODO: Better Exit Condition
             done = true;
     }
 
@@ -201,23 +211,27 @@ SegmentationResult kMeans(const cv::Mat& image, unsigned int k, unsigned int c_t
 int main (int argc, char **argv) {
 
     // Check that there are enough command line paramters
-    // Arguments are input image, k, then output image.
-    if (argc != 5) {
-        std::cout << "Usage: " << argv[0] << " <input image> <k> <output image> <cluster type>\n";
+    // Arguments are input image, k, output image, cluster type [0-2].
+    if (argc != 7) {
+        std::cout << "Usage: " << argv[0] << " <input image> <k> <cluster type> <distance type> <max iteration> <output image>\n";
         exit(1);
     }
 
     srand(time(NULL)); // seed for different pseudo random numbers
     int k = atoi(argv[2]);
-    int c_type = atoi(argv[4]);
+    int c_type = atoi(argv[3]);
+    int d_type = atoi(argv[4]);
+    int max_iterations = atoi(argv[5]);
 
     // Read the image and display it
     cv::Mat image = cv::imread(argv[1]);
     cv::imshow("Original Image", image);
-    cv::waitKey(); // Need to call waitKey to refresh display
+    cv::waitKey();
 
     // Segment the image
-    SegmentationResult result = kMeans(image, k, c_type);
+    SegmentationResult result = kMeans(image, k, c_type, d_type, max_iterations);
+
+    if (d_type == 1) cv::cvtColor(image, image, CV_BGR2HSV);
 
     // Loop over the image
     for_c {
@@ -230,9 +244,11 @@ int main (int argc, char **argv) {
             }
         }
     }
-    
-    // Display the result, save it, and then wait for a key press
-    cv::imwrite(argv[3], image);
+
+    //if (d_type == 1) cv::cvtColor(image, image, CV_HSV2BGR);
+
+    // Save the result, diplay it, and then wait for a key press
+    cv::imwrite(argv[6], image);
     cv::imshow("Segmented Image", image);
     cv::waitKey();
     
