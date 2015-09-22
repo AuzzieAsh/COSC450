@@ -11,19 +11,19 @@
 #include <random> // rngesus
 #include <climits> // infinity
 
+#define CLUSTER_MIN_CHANGE 0
+#define LABEL_MIN_CHANGE 0
+
 // I use these a lot
 #define for_x for (int x = 0; x < image.size().width; x++)
 #define for_y for (int y = 0; y < image.size().height; y++)
 #define for_c for (int c = 0; c < k; c++)
 
+unsigned issac_seed;
+
 struct SegmentationResult {
     std::vector<cv::Vec3b> clusters; // cluster points
     cv::Mat labels; // cluster labels
-};
-
-struct Point {
-    int x;
-    int y;
 };
 
 double compute_distance(cv::Vec3b point, cv::Vec3b centre, int d_type) {
@@ -52,6 +52,12 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
     result.labels.setTo(-1);
     result.clusters.resize(0); // Ensure it's empty
 
+    // Random Variables
+    std::default_random_engine rngesus(issac_seed);
+    std::uniform_int_distribution<int> get_rand_x (0, image.size().width-1);
+    std::uniform_int_distribution<int> get_rand_y (0, image.size().height-1);
+    std::uniform_int_distribution<int> get_rand_k (0, k-1);
+
     // Cluster Variables
     int rand_x, rand_y;
     std::vector<unsigned char> cluster_assign; // case 1
@@ -62,8 +68,8 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
 
         case 0: // Random Selection
             for_c {
-                rand_x = rand() % image.size().width;
-                rand_y = rand() % image.size().height;
+                rand_x = get_rand_x(rngesus);
+                rand_y = get_rand_y(rngesus);
                 result.clusters.push_back(image.at<cv::Vec3b>(rand_y, rand_x));
             }
             break;
@@ -71,7 +77,7 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
         case 1: // Random Clustering
             // Assign each data element to one k cluster
             for (int l = 0; l < image.size().width*image.size().height; l++) {
-                cluster_assign.push_back(rand() % k);
+                cluster_assign.push_back(get_rand_k(rngesus));
             }
 
             // Go through and get the average for each k cluster
@@ -98,8 +104,8 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
         case 2: // k-Means++ (I think)
 
             // 1. Choose one centre uniformly at random from the data points
-            rand_x = rand() % image.size().width;
-            rand_y = rand() % image.size().height;
+            rand_x = get_rand_x(rngesus);
+            rand_y = get_rand_y(rngesus);
             result.clusters.push_back(image.at<cv::Vec3b>(rand_y, rand_x));
 
             // 4. Repeat steps 2 and 3 until all k centres are selected
@@ -113,24 +119,25 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
                 for_x {
                     for_y {
                         double distance = std::abs(compute_distance(image.at<cv::Vec3b>(y,x), centre, d_type));
-
                         cluster_distances.push_back(distance);
                         count += distance;
                     }
                 }
 
+                std::uniform_real_distribution<double> prob_distribution(0, count);
+
                 // 3. Choose one new point at random, using weighted probability
                 // which has weighted probability proportional to D(p)^2
                 while (result.clusters.size() == c) {
 
-                    rand_x = rand() % image.size().width;
-                    rand_y = rand() % image.size().height;
+                    rand_x = get_rand_x(rngesus);
+                    rand_y = get_rand_y(rngesus);
 
-                    double prob = pow(cluster_distances[rand_x*rand_y],2)/count;
-                    double chance = rand()/(RAND_MAX+1.0);
+                    double chance = pow(cluster_distances[rand_x*rand_y],2);
+                    double prob = prob_distribution(rngesus);
 
-                    std::cout << "Prob: " << prob << ", Chance: " << chance;
-                    if (prob > chance) {
+                    std::cout << "Chance: " << chance << ", Prob: " << prob;
+                    if (chance > prob) {
                         result.clusters.push_back(image.at<cv::Vec3b>(rand_y, rand_x));
                         std::cout << " | Sucessful k " << c;
                     }
@@ -204,24 +211,25 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
             cluster_difference += (r + g + b);
         }
 
-        std::cout << "Iteration: " << iterations++ << "\n";
+        std::cout << "Iteration: " << iterations++ << "\n" \
+        << "Cluster Difference: " << cluster_difference << "\n" \
+        << "Label Difference: " << label_difference << "\n";
+
         switch (e_type) {
             case 0:
                 if (iterations >= max_iterations)
                     done = true;
                 break;
             case 1:
-                std::cout << "Cluster Difference: " << cluster_difference << "\n";
-                if (cluster_difference <= 0)
+                if (cluster_difference <= CLUSTER_MIN_CHANGE)
                     done = true;
                 break;
             case 2:
-                std::cout << "Label Difference: " << label_difference << "\n";
-                if (label_difference <= 0)
+                if (label_difference <= LABEL_MIN_CHANGE)
                     done = true;
                 break;
             default:
-                std::cout << "e_type incorrect, try again";
+                std::cout << "e_type incorrect, try again\n";
                 exit(1);
         }
 
@@ -234,19 +242,17 @@ int main (int argc, char **argv) {
 
     // Check that there are enough command line paramters
     // cluster type [0-2], distance type [0-1], end type [0-2]
-    if (argc < 7) {
-        std::cout << "Usage: " << argv[0] << " <input image> <k> <cluster type> <distance type> <end type> <max iterations> <output image>\n";
+    if (argc != 8) {
+        std::cout << "Usage: " << argv[0] << " <input image> <output image> <k> <cluster type> <distance type> <end type> <max iterations>\n";
         exit(1);
     }
 
-    srand(time(NULL)); // seed for different pseudo random numbers
-    int k = atoi(argv[2]);
-    int c_type = atoi(argv[3]);
-    int d_type = atoi(argv[4]);
-    int e_type = atoi(argv[5]);
-    int max_iterations = 0;
-    if (e_type == 0)
-        max_iterations = atoi(argv[6]);
+    issac_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    int k = atoi(argv[3]);
+    int c_type = atoi(argv[4]);
+    int d_type = atoi(argv[5]);
+    int e_type = atoi(argv[6]);
+    int max_iterations = atoi(argv[7]);
 
     // Read the image and display it
     cv::Mat image = cv::imread(argv[1]);
@@ -256,7 +262,8 @@ int main (int argc, char **argv) {
     // Segment the image
     SegmentationResult result = kMeans(image, k, c_type, d_type, e_type, max_iterations);
 
-    if (d_type == 1) cv::cvtColor(image, image, CV_BGR2HSV);
+    if (d_type == 1)
+        cv::cvtColor(image, image, CV_BGR2HSV);
 
     // Loop over the image
     for_c {
@@ -271,7 +278,7 @@ int main (int argc, char **argv) {
     }
 
     // Save the result, diplay it, and then wait for a key press
-    cv::imwrite(argv[argc-1], image);
+    cv::imwrite(argv[2], image);
     cv::imshow("Segmented Image", image);
     cv::waitKey();
     
