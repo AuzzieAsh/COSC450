@@ -29,26 +29,27 @@ struct Point {
 double compute_distance(cv::Vec3b point, cv::Vec3b centre, int d_type) {
     switch (d_type) {
         case 0: // RGB
-            return sqrt(pow(point[0] - centre[0], 2) +
-                        pow(point[1] - centre[1], 2) +
-                        pow(point[2] - centre[2], 2));
+            return sqrt(pow(point[0] - centre[0], 2) + // r
+                        pow(point[1] - centre[1], 2) + // g
+                        pow(point[2] - centre[2], 2)); // b
         case 1: // HSV
-            return sqrt(pow(point[0] - centre[0], 2) +
-                        pow(point[1] - centre[1], 2));
+            return sqrt(pow(point[0] - centre[0], 2) + // h
+                        pow(point[1] - centre[1], 2)); // s
         default:
-            return std::numeric_limits<double>::max();
+            std::cout << "d_type incorrect, try agin\n";
+            exit(1);
     }
 }
 
 /*
  k-Means algorithm - Does k-Means stuff
  */
-SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, int max_iterations) {
+SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, int e_type, int max_iterations) {
 
     // Set up the SegmentationResult
     SegmentationResult result;
     result.labels = cv::Mat(image.size(), CV_32SC1);
-    result.labels.setTo(0);
+    result.labels.setTo(-1);
     result.clusters.resize(0); // Ensure it's empty
 
     // Cluster Variables
@@ -68,9 +69,6 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
             break;
 
         case 1: // Random Clustering
-            if (d_type == 1) {
-               // cv::cvtColor(image, image, CV_HSV2BGR);
-            }
             // Assign each data element to one k cluster
             for (int l = 0; l < image.size().width*image.size().height; l++) {
                 cluster_assign.push_back(rand() % k);
@@ -95,10 +93,6 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
                 cv::Vec3b average(r/count, g/count, b/count);
                 result.clusters.push_back(average);
             }
-            /*if (d_type == 1) {
-                cv::cvtColor(image, image, CV_BGR2HSV);
-                cv::cvtColor(result.clusters, result.clusters, CV_BGR2HSV);
-            }*/
             break;
 
         case 2: // k-Means++ (I think)
@@ -148,7 +142,7 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
             break;
 
         default:
-            std::cout << "c_type too dank, try again\n";
+            std::cout << "c_type incorrect, try again\n";
             exit(1);
     }
 
@@ -157,32 +151,38 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
     }
 
     int iterations = 0;
+    int label_difference;
+    int cluster_difference;
     bool done = false;
 
     while (!done) {
+
+        label_difference = 0;
+        cluster_difference = 0;
 
         for_x {
             for_y {
 
                 // Infinity
                 double min_distance = std::numeric_limits<double>::max();
+                unsigned char prev_c = result.labels.at<unsigned char>(y,x);
 
                 for_c {
-                    double distance;
                     // Calculate the Distance
-                    distance = compute_distance(image.at<cv::Vec3b>(y,x), result.clusters[c], d_type);
-
+                    double distance = compute_distance(image.at<cv::Vec3b>(y,x), result.clusters[c], d_type);
                     if (distance < min_distance) {
                         result.labels.at<unsigned char>(y,x) = c;
                         min_distance = distance;
                     }
                 }
+                if (prev_c != result.labels.at<unsigned char>(y,x))
+                    label_difference++;
             }
         }
-
         for_c {
 
             double r = 0, g = 0, b = 0;
+            cv::Vec3b temp_cluster = result.clusters[c];
             int count = 0;
 
             for_x {
@@ -198,11 +198,33 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
             }
 
             result.clusters[c] = cv::Vec3b(r/count, g/count, b/count);
+            r = std::abs(result.clusters[c][0] - temp_cluster[0]);
+            g = std::abs(result.clusters[c][1] - temp_cluster[1]);
+            b = std::abs(result.clusters[c][2] - temp_cluster[2]);
+            cluster_difference += (r + g + b);
         }
 
         std::cout << "Iteration: " << iterations++ << "\n";
-        if (iterations >= max_iterations) // TODO: Better Exit Condition
-            done = true;
+        switch (e_type) {
+            case 0:
+                if (iterations >= max_iterations)
+                    done = true;
+                break;
+            case 1:
+                std::cout << "Cluster Difference: " << cluster_difference << "\n";
+                if (cluster_difference <= 0)
+                    done = true;
+                break;
+            case 2:
+                std::cout << "Label Difference: " << label_difference << "\n";
+                if (label_difference <= 0)
+                    done = true;
+                break;
+            default:
+                std::cout << "e_type incorrect, try again";
+                exit(1);
+        }
+
     }
 
     return result;
@@ -211,9 +233,9 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
 int main (int argc, char **argv) {
 
     // Check that there are enough command line paramters
-    // Arguments are input image, k, output image, cluster type [0-2].
-    if (argc != 7) {
-        std::cout << "Usage: " << argv[0] << " <input image> <k> <cluster type> <distance type> <max iteration> <output image>\n";
+    // cluster type [0-2], distance type [0-1], end type [0-2]
+    if (argc < 7) {
+        std::cout << "Usage: " << argv[0] << " <input image> <k> <cluster type> <distance type> <end type> <max iterations> <output image>\n";
         exit(1);
     }
 
@@ -221,7 +243,10 @@ int main (int argc, char **argv) {
     int k = atoi(argv[2]);
     int c_type = atoi(argv[3]);
     int d_type = atoi(argv[4]);
-    int max_iterations = atoi(argv[5]);
+    int e_type = atoi(argv[5]);
+    int max_iterations = 0;
+    if (e_type == 0)
+        max_iterations = atoi(argv[6]);
 
     // Read the image and display it
     cv::Mat image = cv::imread(argv[1]);
@@ -229,7 +254,7 @@ int main (int argc, char **argv) {
     cv::waitKey();
 
     // Segment the image
-    SegmentationResult result = kMeans(image, k, c_type, d_type, max_iterations);
+    SegmentationResult result = kMeans(image, k, c_type, d_type, e_type, max_iterations);
 
     if (d_type == 1) cv::cvtColor(image, image, CV_BGR2HSV);
 
@@ -245,10 +270,8 @@ int main (int argc, char **argv) {
         }
     }
 
-    //if (d_type == 1) cv::cvtColor(image, image, CV_HSV2BGR);
-
     // Save the result, diplay it, and then wait for a key press
-    cv::imwrite(argv[6], image);
+    cv::imwrite(argv[argc-1], image);
     cv::imshow("Segmented Image", image);
     cv::waitKey();
     
