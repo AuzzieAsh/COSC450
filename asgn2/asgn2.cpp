@@ -7,9 +7,14 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 
+#include <iostream>
+#include <fstream>
 #include <vector>
 #include <random> // rngesus
 #include <climits> // infinity
+
+#define WRITE_OUT 1
+//#define USER_WAIT 1
 
 #define CLUSTER_MIN_CHANGE 0
 #define LABEL_MIN_CHANGE 0
@@ -45,6 +50,11 @@ double compute_distance(cv::Vec3b point, cv::Vec3b centre, int d_type) {
  k-Means algorithm - Does k-Means stuff
  */
 SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, int e_type, int max_iterations) {
+
+#ifdef WRITE_OUT
+    std::ofstream cluster_file;
+    cluster_file.open("cluster_output.txt", std::fstream::app);
+#endif
 
     // Set up the SegmentationResult
     SegmentationResult result;
@@ -235,6 +245,10 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
 
     }
 
+#ifdef WRITE_OUT
+    cluster_file << iterations << std::endl;
+#endif
+
     return result;
 }
 
@@ -257,7 +271,9 @@ int main (int argc, char **argv) {
     // Read the image and display it
     cv::Mat image = cv::imread(argv[1]);
     cv::imshow("Original Image", image);
+#ifdef USER_WAIT
     cv::waitKey();
+#endif
 
     // Segment the image
     SegmentationResult result = kMeans(image, k, c_type, d_type, e_type, max_iterations);
@@ -280,7 +296,9 @@ int main (int argc, char **argv) {
     // Save the result, diplay it, and then wait for a key press
     cv::imwrite(argv[2], image);
     cv::imshow("Segmented Image", image);
+#ifdef USER_WAIT
     cv::waitKey();
+#endif
     
     return 0;
 }

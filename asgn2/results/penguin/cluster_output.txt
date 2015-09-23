@@ -1,0 +1,66 @@
+Random Selection, RGB, Cluster, src (0 0 1)
+88
+101
+106
+33
+87
+69
+69
+102
+106
+114
+Random Selection, HSV, Cluster, shc (0 1 1)
+100
+42
+104
+73
+79
+114
+88
+111
+110
+111
+Random Clustering, RGB, Cluster, crc (1 0 1)
+46
+38
+90
+55
+38
+90
+38
+38
+90
+33
+Random Clustering, HSV, Cluster, chc (1 1 1)
+75
+61
+74
+36
+61
+90
+61
+61
+37
+61
+k-means++, RGB, Cluster, krc (2 0 1)
+55
+65
+41
+65
+78
+67
+77
+99
+94
+61
+k-means++, HSV, Cluster, khc (2 1 1)
+94
+102
+110
+112
+108
+76
+85
+83
+82
+103
