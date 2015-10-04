@@ -9,8 +9,12 @@
 
 # C Generated Files
 *.o
+<<<<<<< HEAD
 
 # Latex Generated Files
 *.aux
 *.log
 *.out
+=======
+*.log
+>>>>>>> d51d560efd30b9e456bab8c896c3a5eac2c6f02a
