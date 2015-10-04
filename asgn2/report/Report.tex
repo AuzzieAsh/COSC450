@@ -1,0 +1,63 @@
+%----------------------------------------------------------------------------
+% Start
+%----------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage{graphicx} % Required for the inclusion of images 
+\usepackage{tocloft}
+\usepackage[nottoc,numbib]{tocbibind} % Reference in TOC and numbered 
+\usepackage{url} % References include URLs
+\usepackage{mathtools} % Math stuff
+\usepackage[export]{adjustbox}
+\usepackage{hyperref} % Makes links actually work!
+\usepackage[toc,numberedsection]{glossaries}
+\usepackage{geometry}
+
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}} 
+\renewcommand{\labelenumi}{\alph{enumi}.}
+
+\geometry {a4paper, left = 30mm}
+\renewcommand{\baselinestretch}{1.5}
+\setlength{\parskip}{1em}
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+
+%----------------------------------------------------------------------------
+% Document Information
+%----------------------------------------------------------------------------
+
+\begin{document}
+
+\title{COSC450: k-means Segmentation}
+\author{Ashley Manson}
+\date{\today}
+
+\begin{titlepage}
+\clearpage
+\maketitle
+\thispagestyle{empty} % Remove page number from title page
+
+\begin{center}
+
+\vspace*{1\baselineskip} % Skip a line
+
+Department of Computer Science\\
+University of Otago
+
+\end{center}
+
+\end{titlepage}
+
+%----------------------------------------------------------------------------
+% Introduction
+%----------------------------------------------------------------------------
+
+\section{Introduction}
+
+
+%---------------------------------------------------------------------------
+% End
+%---------------------------------------------------------------------------
+
+\end{document}

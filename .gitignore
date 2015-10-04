@@ -1,4 +1,16 @@
+# Emacs Stuff
 *~
+
+# Mac Stuff
 .DS_Store
+
+# Blender Stuff
 *.blend1
+
+# C Generated Files
 *.o
+
+# Latex Generated Files
+*.aux
+*.log
+*.out
