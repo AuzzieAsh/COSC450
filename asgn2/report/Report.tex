@@ -53,16 +53,16 @@ University of Otago
 % My Code
 %----------------------------------------------------------------------------
 
-\section{My Code}
+\section{Program and Code}
 The code is compiled with the included Makefile, if the setPath.sh has run
 sucessfully on the lab machines.\\ 
 
-My program takes 7 command line arguments in this order:
+The program takes 7 command line arguments in this order:
 \begin{enumerate}
 \item The input image to perform the segmentation on.
 \item An output image to save the result.
 \item k for the number of clusters.
-\item Cluster type which is a number between 0 and 2.
+\item Cluster type, which is a number between 0 and 2.
   \begin{enumerate}
   \item 0 is for random selection.
   \item 1 is for random clustering.
@@ -82,7 +82,7 @@ My program takes 7 command line arguments in this order:
     at the top of the file LABEL\_MIN\_CHANGE can augment this.
   \end{enumerate}
 \item Max iterations is for giving a maximum number of iterations before the
-  program will terminate. Will only be used if 0 is given for the end type.
+  program will terminate. Will be used if 0 is given for the end type.
 \end{enumerate}
 
 Once the first image has been displayed, a key press will begin the k-means
@@ -110,22 +110,22 @@ is then added to a vector of Vec3b for computation later.
 
 \subsubsection{Random Clustering}
 This initialisation method is slower than selection as it goes through all the
-pixels in the image. Firstly, for each pixel in the image, it is assigned a
-random k cluster. Once all pixels from the image have been assigned a k cluster,
-I go through each cluster, calculating the average colour across all the
-pixels. Once the average has been calculated, the colour average is added to the
-clusters vector for computation later.
+pixels in the image. For each pixel in the image, it is assigned a random k
+cluster. Once all pixels from the image have been assigned a k cluster, it goes
+through each cluster, calculating the average colour across all the pixels. Once
+the average has been calculated, the colour average is added to the clusters
+vector for computation later.
 
 \subsubsection{k-Means++}
 This method of initialisation takes the longest due to the random distribution
-that contributes to the selection of clusters. Firstly, the first cluster is
-selected at random from the image. This serves as the first cluster point. The
-first loop then goes over the rest of the clusters that need to be selected. The
-first inner loop then goes over the image calculating the distances from the
-selected cluster, storing the result in its corresponding index in a vector and
-adding to a count. The second inner loop then goes on until another cluster is
-added to the cluster vector. Here there is a chance for one of the distances in
-the vector to be selected based on a random distribution of all distances
+that contributes to the selection of clusters. The first cluster is selected at
+random from the image. This serves as the first cluster point. The first loop
+then goes over the rest of the clusters that need to be selected. The first
+inner loop then goes over the image calculating the distances from the selected
+cluster, storing the result in its corresponding index in a vector and adding to
+a count. The second inner loop then goes on until another cluster is added to
+the cluster vector. Here there is a chance for one of the distances in the
+vector to be selected based on a random distribution of all distances
 calculated. Once a new k cluster has been found, it is added to the clusters
 vector, and this loop exits. All of this is repeated until all k clusters are
 found.
@@ -137,37 +137,30 @@ the value. For each pixel in the image, I go through and calculate the distance
 from it and each of the k cluster points. If the distance is less than the
 previous distance, that pixel label gets updated and it gets a new minimum
 distance set for it. For RGB, I simply calculate the difference between the
-corresponding RGB values. HSV is the same, except I ignore the value when
-calculating the distance.
+corresponding RGB values. For HSV I scale the hue by dividing by 180 and than
+multiply by 256. The reason for this is due to OpenCV storing its hue value
+between 0 and 179. The scale ensures that the distance calculations are
+correct. When calculating the distance I ignore the value from HSV.
 
 \subsection{Termination Conditions}
-I have implemented three different ways for the k-means program to terminate;
-you can pass in a parameter to set the maximum number of iteration that the
-algorithm will run for, it can be set to check the differences in cluster
-changes, or it can be set to check how many labels are changing between
-iterations.
+I have implemented three different ways for the k-means program to terminate.
+It can be passed in a parameter to set the maximum number of iterations that the
+program will run for. It can be set to check the differences in cluster
+changes. It can be set to check how many labels are changing between iterations.
 
 \subsubsection{Maximum Iterations}
-The algorithm can be set to run for a set number of iterations, no matter if it
-has stabilized or still has yet to stabilize. I have found that when k is set to
-10, that 50 iterations results in a pretty good outcome with the segmentation of
-the image.
+The program can be set to run for a set number of iterations, no matter if it
+has stabilized or still has yet to stabilize.
 
 \subsubsection{Cluster Changes}
 The program can be set to check for changes in cluster points. With every
 iteration, the difference between cluster changes is calculated, and if it is
-less than a prespecified minimum change, then the algorithm will terminate. I
-have found that when k is set to 10, on a picture with lots of varying colour,
-clusters will stabilize around 50 iterations, however on an image that is made
-up of mostly one colour, white for example, the clusters take longer to
-stabilize and the iteration count approaches or exceeds 100.
+less than a prespecified minimum change, then the algorithm will terminate.
 
 \subsubsection{Label Changes}
 The program can be set to check for changes in labels for each pixel. With every
 iteration, the number of changed labels is summed up, and if it is less than a
-prespecified minimum change, the the algorithm will terminate. This method of
-termination has a similar result as cluster changes, with images made up of lots
-of colours stabilizing faster than an image made up of mostly one colour.
+prespecified minimum change, then the program will terminate.
 
 %---------------------------------------------------------------------------
 % Experiments
@@ -175,17 +168,23 @@ of colours stabilizing faster than an image made up of mostly one colour.
 
 \section{Experiments}
 
-I have experimented around with Random Selection and k-Means++, as well as
-testing each initialisation method with both RGB and HSV. I have ran each with k
-clusters of; 4, 6, 8, and 10. I have taken the average of each to find out which
-is faster to segment the image, and have included a resulting image for each.\\
+I have experimented with Random Selection, Random Clustering and k-Means++, as
+well as testing each initialisation method with both RGB and HSV. I have ran
+each with k clusters of 4, 6, and 8. The termination case was the change of
+clusters. I have taken the average of each to find out which is fastest to
+segment the image. In the following charts, RS means random selection, RC means
+random clustering, and KM means k-means++. The error bars on the charts are of
+the standar deviation or error for each average.
+
+\subsection{Average Iterations}
+
+\subsubsection{mms.jpg}
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=0.49\textwidth]{images/mms}
-\includegraphics[width=0.49\textwidth]{images/lena}
-\caption{Images used for testing, mms.jpg and lena.png.}
-\label{fig:testImages}
+\includegraphics[width=0.35\textwidth]{images/mms}
+\caption{Image used for testing mms.jpg.}
+\label{fig:mmsTest}
 \end{center}
 \end{figure}
 
@@ -197,11 +196,111 @@ is faster to segment the image, and have included a resulting image for each.\\
 \end{center}
 \end{figure}
 
+Figure \ref{fig:mmsChart} shows that HSV in combination with Random Selection or
+k-Means++ performs better than the other distance metrics and initialisation
+method combination. Probably due to there being a wider range of colour in this
+image for the initialisation methods to select. I believe that the reasont he
+clustering falls short is there is too much colour for it to average over, so it
+takes longer for it to stabilize the clusters.
+
+\subsubsection{lena.png}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=0.35\textwidth]{images/lena}
+\caption{Image used for testing lena.png.}
+\label{fig:lenaTest}
+\end{center}
+\end{figure}
+
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[width=1\textwidth]{images/lenaChart}
 \caption{Average iterations on lena.png.}
-\label{fig:mmsChart}
+\label{fig:lenaChart}
+\end{center}
+\end{figure}
+
+Figure \ref{fig:lenaChart} shows that when k is set to 4, all the combinations
+seem to perform around the same level. Moving onto a higher k value however,
+random clustering and HSV start to take longer than the rest to
+stabilize. k-Means++ with HSV outperform the rest. I believe that this is due to
+k-means++ initialising more unique clusters from the image, which allows for the
+clusters to stabilize faster.
+
+\subsubsection{penguin.jpeg}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=0.35\textwidth]{images/penguin}
+\caption{Image used for testing penguin.jpeg.}
+\label{fig:penguinTest}
+\end{center}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\textwidth]{images/penguinChart}
+\caption{Average iterations on penguin.jpeg.}
+\label{fig:penguinChart}
+\end{center}
+\end{figure}
+
+With Figure \ref{fig:penguinChart} when k is set to 4, all combinations seem to
+perform around the same. When k is increased, all RGB combinations perform
+horribly. I believe this is caused due to all the clusters trying to stabilise
+but all the white in the image is causing this to fail. Due to HSV ignoring
+colour and only focusing on hue and saturation, it outperforms the RGB version
+in regards to timing.
+
+\subsection{RGB vs HSV}
+I have taken a look at the resulting images from RGB and HSV distance metrics. I
+have used k-Means++ with the change in clusters as the termination case. I am
+looking for which distance metrics segments the image in the best possible way.
+
+\subsubsection{Bear k = 8}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=0.3\textwidth]{images/bear}
+\includegraphics[width=0.3\textwidth]{images/hsv_8_bear}
+\includegraphics[width=0.3\textwidth]{images/rgb_8_bear}
+\caption{Bear Original, HSV and RGB.}
+\label{fig:bear}
+\end{center}
+\end{figure}
+
+For Figure \ref{fig:bear} I choose to have k as 8 for this, as HSV failed to
+properly segment the image with any k lower than that. However in this example,
+RGB still segments the image better than the HSV version. RGB finds a lot of the
+colour from the bear, and does not blend it with the green background, unlike
+the HSV version. The HSV version seems to be picking up on incorrect value on
+the bear, and clusters some of it with the green background. This could be
+caused by the bears brown fur having a similar hue/saturation as the gree
+background on the top left of the image. The RGB version is better segmented as
+it is more easily distinguished from the rest of the image.
+
+\subsubsection{Kitten k = 5}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=0.3\textwidth]{images/kitten}
+\includegraphics[width=0.3\textwidth]{images/hsv_5_kitten}
+\includegraphics[width=0.3\textwidth]{images/rgb_5_kitten}
+\caption{Kitten Original, HSV and RGB.}
+\label{fig:kitten}
+\end{center}
+\end{figure}
+
+\subsubsection{Sunset Tree k = 5}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=0.3\textwidth]{images/sunset_tree}
+\includegraphics[width=0.3\textwidth]{images/hsv_5_sunset}
+\includegraphics[width=0.3\textwidth]{images/rgb_5_sunset}
+\caption{Sunset Tree Original, HSV and RGB.}
+\label{fig:sunset}
 \end{center}
 \end{figure}
 

@@ -13,8 +13,8 @@
 #include <random> // rngesus
 #include <climits> // infinity
 
-#define WRITE_OUT 1
-//#define USER_WAIT 1
+//#define WRITE_OUT 1
+#define USER_WAIT 1
 
 #define CLUSTER_MIN_CHANGE 0
 #define LABEL_MIN_CHANGE 0
