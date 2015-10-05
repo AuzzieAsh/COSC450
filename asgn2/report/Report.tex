@@ -150,7 +150,7 @@ changes. It can be set to check how many labels are changing between iterations.
 
 \subsubsection{Maximum Iterations}
 The program can be set to run for a set number of iterations, no matter if it
-has stabilized or still has yet to stabilize.
+has stabilised or still has yet to stabilise.
 
 \subsubsection{Cluster Changes}
 The program can be set to check for changes in cluster points. With every
@@ -180,7 +180,7 @@ the standar deviation or error for each average.
 
 \subsubsection{mms.jpg}
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=0.35\textwidth]{images/mms}
 \caption{Image used for testing mms.jpg.}
@@ -188,7 +188,7 @@ the standar deviation or error for each average.
 \end{center}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=1\textwidth]{images/mmsChart}
 \caption{Average iterations on mms.jpg.}
@@ -201,11 +201,11 @@ k-Means++ performs better than the other distance metrics and initialisation
 method combination. Probably due to there being a wider range of colour in this
 image for the initialisation methods to select. I believe that the reasont he
 clustering falls short is there is too much colour for it to average over, so it
-takes longer for it to stabilize the clusters.
+takes longer for it to stabilise the clusters.
 
 \subsubsection{lena.png}
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=0.35\textwidth]{images/lena}
 \caption{Image used for testing lena.png.}
@@ -213,7 +213,7 @@ takes longer for it to stabilize the clusters.
 \end{center}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=1\textwidth]{images/lenaChart}
 \caption{Average iterations on lena.png.}
@@ -224,13 +224,13 @@ takes longer for it to stabilize the clusters.
 Figure \ref{fig:lenaChart} shows that when k is set to 4, all the combinations
 seem to perform around the same level. Moving onto a higher k value however,
 random clustering and HSV start to take longer than the rest to
-stabilize. k-Means++ with HSV outperform the rest. I believe that this is due to
+stabilise. k-Means++ with HSV outperform the rest. I believe that this is due to
 k-means++ initialising more unique clusters from the image, which allows for the
-clusters to stabilize faster.
+clusters to stabilise faster.
 
 \subsubsection{penguin.jpeg}
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=0.35\textwidth]{images/penguin}
 \caption{Image used for testing penguin.jpeg.}
@@ -238,7 +238,7 @@ clusters to stabilize faster.
 \end{center}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=1\textwidth]{images/penguinChart}
 \caption{Average iterations on penguin.jpeg.}
@@ -260,12 +260,12 @@ looking for which distance metrics segments the image in the best possible way.
 
 \subsubsection{Bear k = 8}
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=0.3\textwidth]{images/bear}
 \includegraphics[width=0.3\textwidth]{images/hsv_8_bear}
 \includegraphics[width=0.3\textwidth]{images/rgb_8_bear}
-\caption{Bear Original, HSV and RGB.}
+\caption{Bear Original, HSV and RGB. k = 8}
 \label{fig:bear}
 \end{center}
 \end{figure}
@@ -282,27 +282,43 @@ it is more easily distinguished from the rest of the image.
 
 \subsubsection{Kitten k = 5}
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=0.3\textwidth]{images/kitten}
 \includegraphics[width=0.3\textwidth]{images/hsv_5_kitten}
 \includegraphics[width=0.3\textwidth]{images/rgb_5_kitten}
-\caption{Kitten Original, HSV and RGB.}
+\caption{Kitten Original, HSV and RGB. k = 5}
 \label{fig:kitten}
 \end{center}
 \end{figure}
 
+Figure \ref{fig:kitten} HSV segments the image better than the RGB version. The
+HSV version has segmented the kitten corretly by getting the white and orange
+fur from it. The white fur was segmented with the stone that the kitten is
+standing on, and the eyes were segmented with the green background. The RGB
+version has been segmented into a ghost, as the left side of the image green was
+merged with the kitten. The orange fur also failed to get segmented out from the
+test of the image.
+
 \subsubsection{Sunset Tree k = 5}
 
-\begin{figure}[ht]
+\begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=0.3\textwidth]{images/sunset_tree}
 \includegraphics[width=0.3\textwidth]{images/hsv_5_sunset}
 \includegraphics[width=0.3\textwidth]{images/rgb_5_sunset}
-\caption{Sunset Tree Original, HSV and RGB.}
+\caption{Sunset Tree Original, HSV and RGB. k = 5}
 \label{fig:sunset}
 \end{center}
 \end{figure}
+
+Figure \ref{fig:sunset} the HSV version of the segmentation performs way better
+than the RGB version. HSV properly segmented the tre from the sun and the entire
+is in one cluster. The only issue with the HSV tree is that it made a random
+branch. However the tree that is in front of the sun was not merged with the sky
+or sun. On the other hand the RGB tree was segmented into three parts, with the
+darker part of the tree merging with the ground cluster, one part its own colour
+and the third part being in the same cluster as the sky.
 
 %---------------------------------------------------------------------------
 % Strengths and Weaknesses
@@ -310,35 +326,25 @@ it is more easily distinguished from the rest of the image.
 
 \section{Strengths and Weaknesses}
 
-Random Selection seems to perform worst than the others even though its
-initialization takes the least amount of time. Overall the resulting images
-typically miss colours that were in the original image, some colours like brown
-seem turn into a darker colour like black. This is a result of how the selection
-of clusters happens as if there is one missing colour from all the colours
-selected as the starting clusters, then when the overall colours start to
-average, they will move away from these colours and result in a different
-result.\\
-  
-Random Clustering is by far superior than Random Selection as before
-the k-means algorithm starts, the cluster colours are already averaged out over
-the entire image. It allows for a more wide range of colours to be initialized
-as the cluster colours. I have found with my testing that it helps with getting
-out more colours from the image, which allows for when the segmentation to occur
-that a lot of the colours appear in the final segmentation of the image.
-k-means++ I have found is as good or better than Random Clustering. When
-k-means++ is ran on a image it is good at getting more colours as the initial
-clusters. I have found that when the colours are selected that there is more
-smoothness around the edges of colours, such as when there are light spots or
-shadows. Another thing I have noticed is that when there is a lot of colour in
-the image white tends to be able to pop out and be properly segmented, whether
-in the other two methods of initialization make the white blend in with other
-colours.\\
+k-Means++ is the best initialisation method, followed by random selection, and
+finally random clustering. In terms of time it takes to stabilise the clusters,
+k-means++ takes the least iterations during the execution of the program. Random
+Clustering takes the most time to stabilise, which I believe is caused by the
+fact the clusters are averages across the entire image, so when the stabilising
+begins, it has to move around its clusters a lot more than the others. As the
+other two initialisation methods have selected more diverse clusters.\\
 
 In my implementation of RGB and HSV distance metric, RGB tends to perform better
 than HSV, especially when there is a lot of colour in an image. The resulting
 segmented images that RGB returns have a better image quality than HSV. However,
 on images that are made up of predominantly one colour, HSV correctly segments
-the image very well, compared to RGB.
+the image very well, compared to RGB. HSV also tends to segment images faster
+than RGB, I believe is because it does not take colour into consideration.\\
+
+The different termination criterion do not have a huge impact on the resulting
+images. The cluster termination tends to finish before the label termination. I
+think this is how I have implemented the averaging at the end of the k-means
+algorithm, as the clusters are stabailsed before the labels are updated.
 
 %---------------------------------------------------------------------------
 % End

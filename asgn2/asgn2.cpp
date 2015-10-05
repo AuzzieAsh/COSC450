@@ -24,6 +24,7 @@
 #define for_y for (int y = 0; y < image.size().height; y++)
 #define for_c for (int c = 0; c < k; c++)
 
+// Seed generator
 unsigned issac_seed;
 
 struct SegmentationResult {
@@ -31,6 +32,9 @@ struct SegmentationResult {
     cv::Mat labels; // cluster labels
 };
 
+/*
+ Compute Euclidean Distance
+ */
 double compute_distance(cv::Vec3b point, cv::Vec3b centre, int d_type) {
     switch (d_type) {
         case 0: // RGB
@@ -199,6 +203,8 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
                     label_difference++;
             }
         }
+
+        // Average the clusters
         for_c {
 
             double r = 0, g = 0, b = 0;
@@ -228,6 +234,7 @@ SegmentationResult kMeans(const cv::Mat& image, int k, int c_type, int d_type, i
         << "Cluster Difference: " << cluster_difference << "\n" \
         << "Label Difference: " << label_difference << "\n";
 
+        // Determine if program should terminate
         switch (e_type) {
             case 0:
                 if (iterations >= max_iterations)
