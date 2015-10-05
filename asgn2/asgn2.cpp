@@ -38,6 +38,9 @@ double compute_distance(cv::Vec3b point, cv::Vec3b centre, int d_type) {
                         pow(point[1] - centre[1], 2) + // g
                         pow(point[2] - centre[2], 2)); // b
         case 1: // HSV
+            // Scale Hue
+            point[0] = ((double)point[0]/180.0) * 256;
+            centre[0] = ((double)centre[0]/180.0) * 256;
             return sqrt(pow(point[0] - centre[0], 2) + // h
                         pow(point[1] - centre[1], 2)); // s
         default:
@@ -275,11 +278,13 @@ int main (int argc, char **argv) {
     cv::waitKey();
 #endif
 
+
+    if (d_type == 1) {
+        cv::cvtColor(image, image, CV_BGR2HSV);
+    }
     // Segment the image
     SegmentationResult result = kMeans(image, k, c_type, d_type, e_type, max_iterations);
 
-    if (d_type == 1)
-        cv::cvtColor(image, image, CV_BGR2HSV);
 
     // Loop over the image
     for_c {
@@ -291,6 +296,10 @@ int main (int argc, char **argv) {
                 }
             }
         }
+    }
+
+    if (d_type == 1) {
+        cv::cvtColor(image, image, CV_HSV2BGR);
     }
 
     // Save the result, diplay it, and then wait for a key press

@@ -4,4 +4,4 @@
 Procedurally Generated City using Python and Blender  
 
 ## asgn2
-Implementation of k-Means in c++ using OpenCV  
+Implementation of k-Means in C++ using OpenCV  
